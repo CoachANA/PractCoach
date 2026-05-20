@@ -111,10 +111,10 @@ export default function SessionPage() {
         .single();
 
      if (!pass) {
-  setTimeout(() => {
-    router.refresh();
-  }, 1500);
+  setAccessChecked(true);
+  setHasAccess(false);
 
+  router.push("/scenarios");
   return;
 }
 
