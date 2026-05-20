@@ -88,16 +88,17 @@ export default function SessionPage() {
 
 
     useEffect(() => {
-    async function checkAccess() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+  async function checkAccess() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-      if (!user) {
-        router.push("/login");
-        return;
-      }
+    if (!user) {
+      router.push("/login");
+      return;
+    }
 
+    for (let i = 0; i < 10; i++) {
       const { data: pass } = await supabase
         .from("session_passes")
         .select("*")
@@ -108,23 +109,25 @@ export default function SessionPage() {
         .is("used_at", null)
         .order("created_at", { ascending: true })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-     if (!pass) {
-  setAccessChecked(true);
-  setHasAccess(false);
+      if (pass) {
+        setActivePassId(pass.id);
+        setHasAccess(true);
+        setAccessChecked(true);
+        return;
+      }
 
-  router.push("/scenarios");
-  return;
-}
-
-      setActivePassId(pass.id);
-      setHasAccess(true);
-      setAccessChecked(true);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
-    checkAccess();
-  }, [router, scenarioId, selectedPlan]);
+    setAccessChecked(true);
+    setHasAccess(false);
+    router.push("/scenarios");
+  }
+
+  checkAccess();
+}, [router, scenarioId, selectedPlan]);
 
   useEffect(() => {
   if (!accessChecked || !hasAccess) return;
