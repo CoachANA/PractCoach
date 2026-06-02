@@ -15,15 +15,17 @@ useEffect(() => {
 }, []);
 
   return (
-    <main className="min-h-screen bg-gray-50 px-6 py-12">
-      <NavBar />
-      <div className="mx-auto max-w-5xl">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Choisis un scénario
-        </h1>
-        <p className="mt-2 text-gray-600">
-          Sélectionne un coaché IA pour commencer une séance.
-        </p>
+   <main className="min-h-screen bg-gray-50 px-6 pb-12">
+  <NavBar />
+
+  <div className="mx-auto max-w-5xl">
+    <h1 className="mt-0 text-3xl font-bold text-gray-900">
+  Choisis un scénario
+</h1>
+
+    <p className="mt-2 text-gray-600">
+      Sélectionne un coaché IA pour commencer une séance.
+    </p>
 
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           {scenarios.map((scenario) => (

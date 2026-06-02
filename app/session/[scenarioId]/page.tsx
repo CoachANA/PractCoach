@@ -98,6 +98,8 @@ export default function SessionPage() {
       return;
     }
 
+  
+
     for (let i = 0; i < 10; i++) {
       const { data: pass } = await supabase
         .from("session_passes")

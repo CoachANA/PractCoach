@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Pract Coach</string>
+    <string name="title_activity_main">Pract Coach</string>
+    <string name="package_name">com.practcoach.app</string>
+    <string name="custom_url_scheme">com.practcoach.app</string>
+</resources>
