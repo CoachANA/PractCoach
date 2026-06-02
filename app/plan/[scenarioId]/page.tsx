@@ -93,9 +93,9 @@ export default function PlanPage() {
         </div>
             </div>
       <div className="mx-auto max-w-6xl">
-        <p className="text-sm text-gray-500">Scénario sélectionné</p>
+        
 
-        <h1 className="mt-2 text-3xl font-bold text-gray-900">
+        <h1 className="mt-4 text-3xl font-bold text-gray-900">
           {scenario.title}
         </h1>
 
