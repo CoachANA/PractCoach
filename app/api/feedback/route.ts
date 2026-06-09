@@ -2,9 +2,7 @@ import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import { scenarios } from "@/data/scenarios";
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+
 
 type SessionMessage = {
   role: "coach" | "coachee";
@@ -265,6 +263,10 @@ Règles :
 - Donne des nombres entiers
 - Les scores doivent être cohérents avec la qualité réelle de la séance
 `;
+
+    const client = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
 
     const response = await client.chat.completions.create({
       model: "gpt-4.1-mini",
