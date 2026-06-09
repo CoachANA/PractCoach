@@ -4,6 +4,17 @@ import Stripe from "stripe";
 
 export async function POST(req: Request) {
   try {
+
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    const appUrl = process.env.NEXT_PUBLIC_URL;
+
+if (!stripeSecretKey) {
+  throw new Error("STRIPE_SECRET_KEY manquante dans .env.local");
+}
+
+if (!appUrl) {
+  throw new Error("NEXT_PUBLIC_URL manquante dans .env.local");
+}
     const { plan, userId, userEmail, scenarioId } = await req.json();
 
     const prices: Record<string, number> = {
@@ -36,16 +47,7 @@ export async function POST(req: Request) {
 
     const cancelUrl = `${appUrl}/plan/${encodeURIComponent(scenarioId)}`;
 
-    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-    const appUrl = process.env.NEXT_PUBLIC_URL;
-
-if (!stripeSecretKey) {
-  throw new Error("STRIPE_SECRET_KEY manquante dans .env.local");
-}
-
-if (!appUrl) {
-  throw new Error("NEXT_PUBLIC_URL manquante dans .env.local");
-}
+ 
 
     const stripe = new Stripe(stripeSecretKey);
 
