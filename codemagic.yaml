@@ -3,14 +3,26 @@ workflows:
     name: iOS Capacitor Build
     max_build_duration: 60
     instance_type: mac_mini_m2
+
+    integrations:
+      app_store_connect: PractCoach-Codemagic
+
     environment:
       groups:
         - PractCoach
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.practcoach.app
       node: latest
       xcode: latest
       cocoapods: default
+
     scripts:
       - npm install
       - npm run build
       - npx cap sync ios
-      - xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release -sdk iphoneos -derivedDataPath build DEVELOPMENT_TEAM=7M3455ZY22 CODE_SIGN_STYLE=Automatic
+      - keychain initialize
+      - app-store-connect fetch-signing-files com.practcoach.app --type IOS_APP_STORE
+      - keychain add-certificates
+      - xcode-project use-profiles
+      - xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release -sdk iphoneos -derivedDataPath build DEVELOPMENT_TEAM=7M3455ZY22 CODE_SIGN_STYLE=Manual
