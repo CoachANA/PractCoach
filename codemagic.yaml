@@ -24,4 +24,9 @@ workflows:
       - keychain initialize
       - keychain add-certificates
       - xcode-project use-profiles
-      - xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release -sdk iphoneos -derivedDataPath build DEVELOPMENT_TEAM=7M3455ZY22 CODE_SIGN_STYLE=Manual
+      - xcode-project build-ipa --project ios/App/App.xcodeproj --scheme App
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
