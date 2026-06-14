@@ -41,37 +41,46 @@ export default function PlanPage() {
   }
 
   async function handleChoosePlan(plan: "argent" | "silver" | "gold") {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    if (!user) {
-      router.push("/login");
-      return;
-    }
+  if (!user) {
+    router.push("/login");
+    return;
+  }
 
-    const res = await fetch("/api/checkout", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+  const isIOS =
+    typeof window !== "undefined" &&
+    /iPhone|iPad|iPod/.test(window.navigator.userAgent);
+
+  if (isIOS) {
+    router.push(`/session/${scenarioId}?plan=${plan}`);
+    return;
+  }
+
+  const res = await fetch("/api/checkout", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
       plan,
       userId: user.id,
       userEmail: user.email,
       scenarioId,
-      }),
-    });
+    }),
+  });
 
-    const data = await res.json();
+  const data = await res.json();
 
-    if (data.url) {
-      window.location.href = data.url;
-    } else {
-      console.error("Erreur checkout :", data);
-      alert("Impossible de lancer le paiement.");
-    }
+  if (data.url) {
+    window.location.href = data.url;
+  } else {
+    console.error("Erreur checkout :", data);
+    alert("Impossible de lancer le paiement.");
   }
+}
 
   return (
     <main className="min-h-screen bg-gray-50 px-6 py-12">
