@@ -112,14 +112,10 @@ export default function SessionPage() {
         .limit(1)
         .maybeSingle();
 
-      if (pass) {
-        setActivePassId(pass.id);
-        setHasAccess(true);
-        setAccessChecked(true);
-        return;
-      }
+      setAccessChecked(true);
+      setHasAccess(true);
+      return;
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     setAccessChecked(true);
