@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     }
 
     const mp3 = await client.audio.speech.create({
-      model: "gpt-4o-mini-tts",
+      model: "tts-1",
       voice: "alloy",
       input: text,
     });

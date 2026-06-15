@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
     const transcription = await client.audio.transcriptions.create({
       file,
-      model: "gpt-4o-mini-transcribe",
+      model: "whisper-1",
       language: "fr",
     });
 
