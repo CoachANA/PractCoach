@@ -76,6 +76,7 @@ export default function SessionPage() {
   const [goldKeyQuestions, setGoldKeyQuestions] = useState("");
   const [goldOutcome, setGoldOutcome] = useState("");
   const [goldFeedbackError, setGoldFeedbackError] = useState("");
+  const mediaStreamRef = useRef<MediaStream | null>(null);
 
   const DID_AGENT_ID = "v2_agt_yTV_wBbg";
   const DID_CLIENT_KEY =
@@ -464,6 +465,7 @@ async function handleStartRecording() {
   setIsSpeaking(false);
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaStreamRef.current = stream;
 
     const mimeType = MediaRecorder.isTypeSupported("audio/mp4")
   ? "audio/mp4"
@@ -484,6 +486,9 @@ const recorder = new MediaRecorder(
     };
 
     recorder.onstop = async () => {
+        mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+        mediaStreamRef.current = null;
+
       const audioBlob = new Blob(chunks, {
   type: recorder.mimeType || mimeType || "audio/mp4",
 });
