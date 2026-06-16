@@ -540,6 +540,8 @@ function handleStopRecording() {
 }
 
 async function playCoachReply(text: string) {
+  let audioUrl: string | null = null;
+
   try {
     setIsSpeaking(true);
 
@@ -556,17 +558,30 @@ async function playCoachReply(text: string) {
     }
 
     const audioBlob = await response.blob();
-    const audioUrl = URL.createObjectURL(audioBlob);
+    audioUrl = URL.createObjectURL(audioBlob);
 
-    const audio = new Audio(audioUrl);
-    audio.onended = () => {
-      URL.revokeObjectURL(audioUrl);
-      setIsSpeaking(false);
-    };
+    const audio = new Audio();
+    audio.src = audioUrl;
+    audio.playsInline = true;
+    audio.preload = "auto";
 
-    await audio.play();
+    await new Promise<void>((resolve, reject) => {
+      audio.onended = () => resolve();
+      audio.onerror = () => reject(new Error("Erreur lecture audio"));
+      audio.oncanplaythrough = async () => {
+        try {
+          await audio.play();
+        } catch (error) {
+          reject(error);
+        }
+      };
+
+      audio.load();
+    });
   } catch (error) {
     console.error("Erreur lecture audio :", error);
+  } finally {
+    if (audioUrl) URL.revokeObjectURL(audioUrl);
     setIsSpeaking(false);
   }
 }
