@@ -465,7 +465,16 @@ async function handleStartRecording() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-    const recorder = new MediaRecorder(stream);
+    const mimeType = MediaRecorder.isTypeSupported("audio/mp4")
+  ? "audio/mp4"
+  : MediaRecorder.isTypeSupported("audio/webm")
+  ? "audio/webm"
+  : "";
+
+const recorder = new MediaRecorder(
+  stream,
+  mimeType ? { mimeType } : undefined
+);
     const chunks: Blob[] = [];
 
     recorder.ondataavailable = (event) => {
@@ -475,14 +484,20 @@ async function handleStartRecording() {
     };
 
     recorder.onstop = async () => {
-      const audioBlob = new Blob(chunks, { type: "audio/webm" });
+      const audioBlob = new Blob(chunks, {
+  type: recorder.mimeType || mimeType || "audio/mp4",
+});
 
       setAudioChunks(chunks);
       setIsTranscribing(true);
 
       try {
         const formData = new FormData();
-        formData.append("file", audioBlob, "recording.webm");
+        formData.append(
+  "file",
+  audioBlob,
+  recorder.mimeType?.includes("mp4") ? "recording.m4a" : "recording.webm"
+);
 
         const response = await fetch("/api/transcribe", {
           method: "POST",
