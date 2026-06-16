@@ -562,7 +562,6 @@ async function playCoachReply(text: string) {
 
     const audio = new Audio();
     audio.src = audioUrl;
-    audio.playsInline = true;
     audio.preload = "auto";
 
     await new Promise<void>((resolve, reject) => {
