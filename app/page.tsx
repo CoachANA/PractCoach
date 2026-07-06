@@ -14,10 +14,10 @@ export default function Home() {
         </p>
 
         <Link
-          href="/scenarios"
+          href="/access"
           className="mt-8 inline-block rounded-xl bg-black px-6 py-3 text-white hover:opacity-90"
         >
-          Choisir un scénario
+          Choisir un Accès
         </Link>
       </div>
     </main>
