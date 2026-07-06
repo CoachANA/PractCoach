@@ -38,6 +38,69 @@ export async function POST(req: Request) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
 
+    const type = session.metadata?.type;
+
+    if (type === "organization_pack") {
+  const userId = session.metadata?.userId;
+  const credits = Number(session.metadata?.credits || 0);
+
+  if (!userId || credits <= 0) {
+    return NextResponse.json(
+      { error: "Metadata organisation invalide" },
+      { status: 400 }
+    );
+  }
+
+  // retrouver l'organisation de l'admin
+  const { data: member, error: memberError } = await supabaseAdmin
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+
+  if (memberError) throw memberError;
+
+  if (!member) {
+    return NextResponse.json(
+      { error: "Organisation introuvable." },
+      { status: 404 }
+    );
+  }
+
+  // lire le total actuel
+  const { data: organizationCredits, error: creditsError } =
+    await supabaseAdmin
+      .from("organization_credits")
+      .select("total_credits")
+      .eq("organization_id", member.organization_id)
+      .maybeSingle();
+
+  if (creditsError) throw creditsError;
+
+  const currentTotal = Number(
+    organizationCredits?.total_credits || 0
+  );
+
+  // ajouter les crédits achetés
+  const { error: updateError } = await supabaseAdmin
+    .from("organization_credits")
+    .update({
+      total_credits: currentTotal + credits,
+    })
+    .eq("organization_id", member.organization_id);
+
+  if (updateError) throw updateError;
+
+  console.log("Crédits organisation ajoutés ✅", {
+    organizationId: member.organization_id,
+    added: credits,
+    total: currentTotal + credits,
+  });
+
+  return NextResponse.json({ received: true });
+}
+
     const userId = session.metadata?.userId;
     const plan = session.metadata?.plan;
     const scenarioId = session.metadata?.scenarioId;

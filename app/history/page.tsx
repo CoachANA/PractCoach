@@ -8,6 +8,11 @@ import { supabase } from "@/lib/supabase";
 
 import NavBar from "@/app/components/NavBar";
 
+import { useSearchParams } from "next/navigation";
+
+import { Suspense } from "react";
+
+
 type SessionItem = {
   id: string;
   scenario_id: string;
@@ -20,29 +25,50 @@ type SessionItem = {
   }[];
 };
 
-export default function HistoryPage() {
+
+
+function HistoryContent() {
   const [sessions, setSessions] = useState<SessionItem[]>([]);
+  const [isOrganizationMode, setIsOrganizationMode] = useState(false);
+
+  const searchParams = useSearchParams();
+  const source = searchParams.get("source");
 
   useEffect(() => {
-  async function loadSessions() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    async function loadSessions() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (!user) {
-      setSessions([]);
-      return;
+      if (!user) {
+        setSessions([]);
+        return;
+      }
+
+      const orgRes = await fetch("/api/organization/current", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId: user.id }),
+      });
+
+      if (source === "organization" || orgRes.ok) {
+        setIsOrganizationMode(true);
+      }
+
+      const res = await fetch(`/api/sessions?userId=${user.id}`);
+      const data = await res.json();
+
+      setSessions(data);
     }
 
-    const res = await fetch(`/api/sessions?userId=${user.id}`);
-    const data = await res.json();
+    
 
-    setSessions(data);
-  }
+    loadSessions();
+  }, [source]);
 
-  loadSessions();
-}, []);
-
+ 
   return (
     <main className="min-h-screen bg-white px-6 py-20">
       <NavBar />
@@ -56,7 +82,7 @@ export default function HistoryPage() {
   </a>
   
   <a
-  href="/"
+  href={isOrganizationMode ? "/scenarios?source=organization" : "/scenarios"}
   className="rounded-xl bg-green-600 px-4 py-2 text-sm text-white"
 >
   Nouvelle séance
@@ -108,5 +134,13 @@ export default function HistoryPage() {
         )}
       </div>
     </main>
+  );
+}
+
+ export default function HistoryPage() {
+  return (
+    <Suspense fallback={<main className="p-10">Chargement...</main>}>
+      <HistoryContent />
+    </Suspense>
   );
 }

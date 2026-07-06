@@ -1,9 +1,10 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { scenarios } from "@/data/scenarios";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
 const plans = [
   {
@@ -29,12 +30,57 @@ const plans = [
   },
 ];
 
+const PLAN_COSTS = {
+  argent: 1,
+  silver: 2,
+  gold: 5,
+};
+
 export default function PlanPage() {
   const router = useRouter();
   const params = useParams();
   const scenarioId = params.scenarioId as string;
+  const searchParams = useSearchParams();
+
+  const [creditInfo, setCreditInfo] = useState<{
+  organizationId: string;
+  totalCredits: number;
+  usedCredits: number;
+  remainingCredits: number;
+} | null>(null);
+
+  const source = searchParams.get("source");
+  const isOrganization = searchParams.get("source") === "organization";
 
   const scenario = scenarios.find((item) => item.id === scenarioId);
+
+  useEffect(() => {
+  async function loadCredits() {
+    if (!isOrganization) return;
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return;
+
+    const res = await fetch("/api/organization/my-credits", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId: user.id }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      setCreditInfo(data);
+    }
+  }
+
+  loadCredits();
+}, [isOrganization]);
 
   if (!scenario) {
     return <p className="p-10">Scénario introuvable.</p>;
@@ -50,14 +96,30 @@ export default function PlanPage() {
     return;
   }
 
-  const isIOS =
-    typeof window !== "undefined" &&
-    /iPhone|iPad|iPod/.test(window.navigator.userAgent);
+  if (isOrganization) {
+  const res = await fetch("/api/organization/use-credit", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      userId: user.id,
+      plan,
+      organizationId: creditInfo?.organizationId,
+    }),
+  });
 
-  if (isIOS) {
-    router.push(`/session/${scenarioId}?plan=${plan}`);
+  const data = await res.json();
+
+  if (!res.ok) {
+    alert(data.error || "Crédits insuffisants.");
     return;
   }
+
+  router.push(`/session/${scenarioId}?plan=${plan}&source=organization`);
+  return;
+}
+
 
   const res = await fetch("/api/checkout", {
     method: "POST",
@@ -119,6 +181,13 @@ export default function PlanPage() {
           </p>
         </div>
 
+        
+                {isOrganization && creditInfo && (
+                <div className="mt-3 inline-flex rounded-full bg-black px-4 py-2 text-sm font-semibold text-white">
+                   Crédits restants : {creditInfo.remainingCredits} / {creditInfo.totalCredits}
+                </div>
+                )}
+
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
           {plans.map((plan) => (
             <div
@@ -135,8 +204,11 @@ export default function PlanPage() {
                   </p>
                 </div>
 
+
                 <span className="rounded-full bg-black px-3 py-1 text-sm text-white">
-                  {plan.price}
+                  {isOrganization
+                  ? `${PLAN_COSTS[plan.id as keyof typeof PLAN_COSTS]} crédit${PLAN_COSTS[plan.id as keyof typeof PLAN_COSTS] > 1 ? "s" : ""}`
+                  : plan.price}
                 </span>
               </div>
 

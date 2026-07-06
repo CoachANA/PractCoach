@@ -18,6 +18,7 @@ export default function SessionPage() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
+  const source = searchParams.get("source");
 
   const scenarioId = params.scenarioId as string;
   const selectedPlan = searchParams.get("plan") ?? "argent";
@@ -87,6 +88,12 @@ export default function SessionPage() {
 
   const shouldShowFeedback = !!feedback;
 
+  const [creditInfo, setCreditInfo] = useState<{
+  totalCredits: number;
+  usedCredits: number;
+  remainingCredits: number;
+} | null>(null);
+
 
     useEffect(() => {
   async function checkAccess() {
@@ -99,6 +106,51 @@ export default function SessionPage() {
       return;
     }
 
+    if (source === "organization") {
+    const res = await fetch("/api/organization/my-credits", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      userId: user.id,
+    }),
+    });
+
+   const data = await res.json();
+
+if (!res.ok) {
+  setAccessChecked(true);
+  setHasAccess(false);
+  router.push("/scenarios?source=organization");
+  return;
+}
+
+const planCost =
+  selectedPlan === "argent"
+    ? 1
+    : selectedPlan === "silver"
+    ? 2
+    : selectedPlan === "gold"
+    ? 5
+    : 0;
+
+const remainingCredits =
+  Number(data.totalCredits) - Number(data.usedCredits);
+
+if (remainingCredits < planCost) {
+   setAccessChecked(true);
+  setHasAccess(false);
+  
+  alert(
+    `Crédits insuffisants. Il te reste ${remainingCredits} crédit(s).`
+  );
+  router.push("/scenarios?source=organization");
+  return;
+}
+
+setCreditInfo(data);
+    }
  
     for (let i = 0; i < 10; i++) {
       const { data: pass } = await supabase
@@ -122,10 +174,11 @@ export default function SessionPage() {
     setAccessChecked(true);
     setHasAccess(false);
     router.push("/scenarios");
+
   }
 
   checkAccess();
-}, [router, scenarioId, selectedPlan]);
+}, [router, scenarioId, selectedPlan, source]);
 
   useEffect(() => {
   if (!accessChecked || !hasAccess) return;
@@ -681,6 +734,12 @@ if (!hasAccess) {
         <div className="mt-4 inline-flex rounded-full bg-black px-4 py-2 text-sm text-white">
           Plan sélectionné : {formattedPlan}
         </div>
+
+        {source === "organization" && creditInfo && (
+       <div className="mt-3 inline-flex rounded-full bg-black px-4 py-2 text-sm font-semibold text-white">
+        Crédits restants : {creditInfo.remainingCredits} / {creditInfo.totalCredits}
+       </div>
+        )}
 
         <div className="mt-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
           {isArgent && (
