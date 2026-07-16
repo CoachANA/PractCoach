@@ -72,7 +72,7 @@ async function handleOrganizationAccess() {
 
         <div className="grid gap-6 md:grid-cols-2">
           <Link
-            href="/scenarios"
+            href="/individual"
             className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md"
           >
             <h2 className="text-xl font-semibold text-gray-900">Accès individuel</h2>
