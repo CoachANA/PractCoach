@@ -101,6 +101,80 @@ export async function POST(req: Request) {
   return NextResponse.json({ received: true });
 }
 
+if (type === "individual_pack") {
+  const userId = session.metadata?.userId;
+  const credits = Number(session.metadata?.credits || 0);
+  const offer = session.metadata?.offer;
+
+  if (!userId || credits <= 0 || !offer) {
+    return NextResponse.json(
+      { error: "Metadata pack individuel invalide" },
+      { status: 400 }
+    );
+  }
+
+  // Vérifie que ce paiement n'a pas déjà été traité
+  const { data: existingPurchase } = await supabaseAdmin
+    .from("individual_credit_purchases")
+    .select("id")
+    .eq("stripe_session_id", session.id)
+    .maybeSingle();
+
+  if (existingPurchase) {
+    console.log("Paiement déjà traité.");
+    return NextResponse.json({ received: true });
+  }
+
+  // Lire le solde actuel
+  const { data: existingCredits } = await supabaseAdmin
+    .from("individual_credits")
+    .select("balance")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  const currentBalance = existingCredits?.balance ?? 0;
+
+  if (existingCredits) {
+    const { error } = await supabaseAdmin
+      .from("individual_credits")
+      .update({
+        balance: currentBalance + credits,
+      })
+      .eq("user_id", userId);
+
+    if (error) throw error;
+  } else {
+    const { error } = await supabaseAdmin
+      .from("individual_credits")
+      .insert({
+        user_id: userId,
+        balance: credits,
+      });
+
+    if (error) throw error;
+  }
+
+  // Historique
+  const { error: purchaseError } = await supabaseAdmin
+    .from("individual_credit_purchases")
+    .insert({
+      user_id: userId,
+      stripe_session_id: session.id,
+      offer,
+      credits,
+      amount_cents: Number(session.metadata?.amountCents),
+    });
+
+  if (purchaseError) throw purchaseError;
+
+  console.log("Pack individuel crédité :", {
+    userId,
+    credits,
+  });
+
+  return NextResponse.json({ received: true });
+}
+
     const userId = session.metadata?.userId;
     const plan = session.metadata?.plan;
     const scenarioId = session.metadata?.scenarioId;

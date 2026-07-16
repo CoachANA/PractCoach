@@ -1,32 +1,81 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 export default function IndividualPage() {
   const router = useRouter();
 
-  const offers = [
-    {
-      title: "Session à l'unité",
-      description:
-        "Idéal pour découvrir PractCoach ou réaliser une séance ponctuelle.",
+async function handleChooseOffer(offerId: string) {
+  if (offerId === "unit") {
+    router.push("/scenarios");
+    return;
+  }
+
+  if (offerId === "monthly") {
+    alert("L’abonnement mensuel sera disponible prochainement.");
+    return;
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    router.push("/login");
+    return;
+  }
+
+  const response = await fetch("/api/checkout", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
     },
-    {
-      title: "Pack Découverte",
-      description:
-        "3 sessions pour commencer à développer vos compétences de coaching.",
-    },
-    {
-      title: "Pack Entraînement",
-      description:
-        "10 sessions pour progresser régulièrement et suivre votre évolution.",
-    },
-    {
-      title: "Abonnement mensuel",
-      description:
-        "Un nombre de crédits renouvelé chaque mois pour un entraînement continu.",
-    },
-  ];
+    body: JSON.stringify({
+      mode: "individual_pack",
+      offer: offerId,
+      userId: user.id,
+      userEmail: user.email,
+    }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || !data.url) {
+    console.error("Erreur achat pack individuel :", data);
+    alert(data.error || "Impossible de lancer le paiement.");
+    return;
+  }
+
+  window.location.href = data.url;
+}
+
+const offers = [
+  {
+    id: "unit",
+    title: "Session à l'unité",
+    description:
+      "Idéal pour découvrir PractCoach ou réaliser une séance ponctuelle.",
+  },
+  {
+    id: "discovery",
+    title: "Pack Découverte",
+    description:
+      "3 crédits pour commencer à développer vos compétences de coaching.",
+  },
+  {
+    id: "training",
+    title: "Pack Entraînement",
+    description:
+      "10 crédits pour progresser régulièrement et suivre votre évolution.",
+  },
+  {
+    id: "monthly",
+    title: "Abonnement mensuel",
+    description:
+      "Un nombre de crédits renouvelé chaque mois pour un entraînement continu.",
+  },
+];
 
   return (
     <main className="min-h-screen bg-gray-50 px-6 py-12">
@@ -59,8 +108,8 @@ export default function IndividualPage() {
               </p>
 
               <button
-                onClick={() => router.push("/scenarios")}
-                className="mt-6 rounded-xl bg-black px-5 py-3 text-white hover:bg-blue-700 transition"
+                onClick={() => handleChooseOffer(offer.id)}
+                className="mt-6 rounded-xl bg-black px-5 py-3 text-white hover:bg-black transition"
               >
                 Choisir cette formule
               </button>

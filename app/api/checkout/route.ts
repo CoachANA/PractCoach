@@ -19,6 +19,19 @@ const ORGANIZATION_PACKS = {
   },
 };
 
+const INDIVIDUAL_PACKS = {
+  discovery: {
+    name: "Pack Découverte",
+    credits: 3,
+    price: 800, // 8,00 € — prix provisoire
+  },
+  training: {
+    name: "Pack Entraînement",
+    credits: 10,
+    price: 2500, // 25,00 € — prix provisoire
+  },
+};
+
 export async function POST(req: Request) {
   try {
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -32,8 +45,15 @@ export async function POST(req: Request) {
       throw new Error("NEXT_PUBLIC_URL manquante dans .env.local");
     }
 
-    const { mode, pack, plan, userId, userEmail, scenarioId } =
-      await req.json();
+    const {
+  mode,
+  pack,
+  offer,
+  plan,
+  userId,
+  userEmail,
+  scenarioId,
+} = await req.json();
 
     const stripe = new Stripe(stripeSecretKey);
 
@@ -83,6 +103,56 @@ export async function POST(req: Request) {
 
       return NextResponse.json({ url: session.url });
     }
+
+    if (mode === "individual_pack") {
+  const selectedOffer =
+    INDIVIDUAL_PACKS[offer as keyof typeof INDIVIDUAL_PACKS];
+
+  if (!selectedOffer) {
+    return NextResponse.json(
+      { error: "Pack individuel invalide" },
+      { status: 400 }
+    );
+  }
+
+  if (!userId || !userEmail) {
+    return NextResponse.json(
+      { error: "userId et userEmail sont requis" },
+      { status: 400 }
+    );
+  }
+
+  const session = await stripe.checkout.sessions.create({
+    customer_email: userEmail,
+    payment_method_types: ["card"],
+    mode: "payment",
+    line_items: [
+      {
+        price_data: {
+          currency: "eur",
+          product_data: {
+            name: selectedOffer.name,
+            description: `${selectedOffer.credits} crédits PractCoach`,
+          },
+          unit_amount: selectedOffer.price,
+        },
+        quantity: 1,
+      },
+    ],
+    success_url: `${appUrl}/individual?payment=success`,
+    cancel_url: `${appUrl}/individual?payment=cancelled`,
+    metadata: {
+      type: "individual_pack",
+      userId,
+      offer,
+      credits: String(selectedOffer.credits),
+      amountCents: String(selectedOffer.price),
+    },
+  });
+
+  return NextResponse.json({ url: session.url });
+}
+
 
     const prices: Record<string, number> = {
       argent: 300,
