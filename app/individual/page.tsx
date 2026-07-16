@@ -60,7 +60,7 @@ export default function IndividualPage() {
 
               <button
                 onClick={() => router.push("/scenarios")}
-                className="mt-6 rounded-xl bg-blue-600 px-5 py-3 text-white hover:bg-blue-700 transition"
+                className="mt-6 rounded-xl bg-black px-5 py-3 text-white hover:bg-blue-700 transition"
               >
                 Choisir cette formule
               </button>
