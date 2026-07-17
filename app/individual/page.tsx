@@ -50,6 +50,18 @@ function IndividualContent() {
   loadBalance();
 }, [router]);
 
+useEffect(() => {
+  if (paymentStatus !== "success") return;
+
+  const timeoutId = window.setTimeout(() => {
+    router.replace("/individual");
+  }, 4000);
+
+  return () => {
+    window.clearTimeout(timeoutId);
+  };
+}, [paymentStatus, router]);
+
 
 async function handleChooseOffer(offerId: string) {
   if (offerId === "unit") {
@@ -140,16 +152,22 @@ const offers = [
 
         
 
-        {paymentStatus === "success" && (
+    {paymentStatus === "success" && (
   <div className="mt-6 rounded-xl border border-green-200 bg-green-50 p-4 text-green-800">
     <p className="font-semibold">Paiement réussi.</p>
+
     <p className="mt-1 text-sm">
-      Vos crédits ont été ajoutés à votre compte.
+      Votre nouveau solde est de{" "}
+      <span className="font-semibold">
+        {loadingBalance
+          ? "..."
+          : `${balance ?? 0} crédit${balance === 1 ? "" : "s"}`}
+      </span>.
     </p>
 
     <button
       onClick={() => router.push("/scenarios")}
-      className="mt-4 rounded-xl bg-black px-4 py-2 text-white"
+      className="mt-4 rounded-xl bg-black px-4 py-2 text-white hover:opacity-90"
     >
       Commencer un entraînement
     </button>
