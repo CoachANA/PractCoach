@@ -1,10 +1,55 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 export default function IndividualPage() {
   const router = useRouter();
+
+  const searchParams = useSearchParams();
+
+  const [balance, setBalance] = useState<number | null>(null);
+  const [loadingBalance, setLoadingBalance] = useState(true);
+
+  const paymentStatus = searchParams.get("payment");
+
+  useEffect(() => {
+  async function loadBalance() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    const response = await fetch("/api/individual/my-credits", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId: user.id,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      setBalance(data.balance);
+    } else {
+      console.error("Erreur récupération crédits :", data);
+      setBalance(0);
+    }
+
+    setLoadingBalance(false);
+  }
+
+  loadBalance();
+}, [router]);
+
 
 async function handleChooseOffer(offerId: string) {
   if (offerId === "unit") {
@@ -91,6 +136,47 @@ const offers = [
             pratiquer avec PractCoach.
           </p>
         </div>
+
+        
+
+        {paymentStatus === "success" && (
+  <div className="mt-6 rounded-xl border border-green-200 bg-green-50 p-4 text-green-800">
+    <p className="font-semibold">Paiement réussi.</p>
+    <p className="mt-1 text-sm">
+      Vos crédits ont été ajoutés à votre compte.
+    </p>
+
+    <button
+      onClick={() => router.push("/scenarios")}
+      className="mt-4 rounded-xl bg-black px-4 py-2 text-white"
+    >
+      Commencer un entraînement
+    </button>
+  </div>
+)}
+
+{!loadingBalance && (balance ?? 0) > 0 && (
+  <div className="mt-4">
+    <button
+      onClick={() => router.push("/scenarios")}
+      className="rounded-xl bg-black px-5 py-3 font-semibold text-white hover:opacity-90"
+    >
+      Utiliser mes crédits
+    </button>
+  </div>
+)}
+
+{paymentStatus === "cancelled" && (
+  <div className="mt-6 rounded-xl border border-orange-200 bg-orange-50 p-4 text-orange-800">
+    Le paiement a été annulé. Aucun crédit n’a été débité.
+  </div>
+)}
+
+<div className="mt-6 inline-flex rounded-full bg-black px-4 py-2 text-sm font-semibold text-white">
+  {loadingBalance
+    ? "Chargement des crédits..."
+    : `${balance ?? 0} crédit${balance === 1 ? "" : "s"} disponible${balance === 1 ? "" : "s"}`}
+</div>
 
         <div className="grid gap-6">
 

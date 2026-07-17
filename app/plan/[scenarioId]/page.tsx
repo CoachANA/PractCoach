@@ -120,6 +120,37 @@ export default function PlanPage() {
   return;
 }
 
+  const creditResponse = await fetch("/api/individual/use-credit", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    userId: user.id,
+    scenarioId,
+    plan,
+  }),
+});
+
+const creditResult = await creditResponse.json();
+
+if (creditResponse.ok) {
+  router.push(`/session/${scenarioId}?plan=${plan}&source=individual`);
+  return;
+}
+
+if (
+  creditResponse.status !== 400 ||
+  creditResult.error !== "Crédits insuffisants."
+) {
+  console.error("Erreur utilisation crédits individuels :", creditResult);
+  alert(
+    creditResult.error ||
+      "Impossible d’utiliser vos crédits pour le moment."
+  );
+  return;
+}
+
 
   const res = await fetch("/api/checkout", {
     method: "POST",
