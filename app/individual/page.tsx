@@ -1,10 +1,10 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-export default function IndividualPage() {
+function IndividualContent() {
   const router = useRouter();
 
   const searchParams = useSearchParams();
@@ -122,6 +122,7 @@ const offers = [
   },
 ];
 
+
   return (
     <main className="min-h-screen bg-gray-50 px-6 py-12">
       <div className="mx-auto max-w-4xl">
@@ -205,5 +206,19 @@ const offers = [
         </div>
       </div>
     </main>
+  );
+}
+
+export default function IndividualPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-gray-50 px-6 py-12">
+          <div className="mx-auto max-w-4xl">Chargement...</div>
+        </main>
+      }
+    >
+      <IndividualContent />
+    </Suspense>
   );
 }
