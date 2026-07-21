@@ -152,28 +152,75 @@ if (remainingCredits < planCost) {
 setCreditInfo(data);
     }
  
-    for (let i = 0; i < 10; i++) {
-      const { data: pass } = await supabase
-        .from("session_passes")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("scenario_id", scenarioId)
-        .eq("plan", selectedPlan)
-        .eq("status", "paid")
-        .is("used_at", null)
-        .order("created_at", { ascending: true })
-        .limit(1)
-        .maybeSingle();
+if (source === "organization") {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const { data: pass, error } = await supabase
+      .from("session_passes")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("scenario_id", scenarioId)
+      .eq("plan", selectedPlan)
+      .eq("status", "paid")
+      .is("used_at", null)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
 
-      setAccessChecked(true);
-      setHasAccess(true);
-      return;
-
+    if (error) {
+      console.error(error);
+      break;
     }
 
+    if (pass) {
+      setActivePassId(pass.id);
+      setHasAccess(true);
+      setAccessChecked(true);
+      return;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  }
+
+  setHasAccess(false);
+  setAccessChecked(true);
+  router.replace(`/plan/${scenarioId}?source=organization`);
+  return;
+}
+
+// Vérification obligatoire d’un pass individuel valide.
+for (let attempt = 0; attempt < 10; attempt++) {
+  const { data: pass, error: passError } = await supabase
+    .from("session_passes")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("scenario_id", scenarioId)
+    .eq("plan", selectedPlan)
+    .eq("status", "paid")
+    .is("used_at", null)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (passError) {
+    console.error("Erreur vérification du pass :", passError);
+    break;
+  }
+
+  if (pass) {
+    setActivePassId(pass.id);
+    setHasAccess(true);
     setAccessChecked(true);
-    setHasAccess(false);
-    router.push("/scenarios");
+    return;
+  }
+
+  // Utile juste après un paiement Stripe :
+  // le webhook peut nécessiter quelques instants pour créer le pass.
+  await new Promise((resolve) => setTimeout(resolve, 500));
+}
+
+setHasAccess(false);
+setAccessChecked(true);
+router.replace(`/plan/${scenarioId}`);
 
   }
 
@@ -316,17 +363,17 @@ async function sendCoachMessage(messageText: string) {
 
     setMessages((prev) => [...prev, aiReply]);
 
-  const shouldUseSilverAvatar =
-  selectedPlan === "silver" &&
-  shouldShowAvatarForSilver(aiText) &&
-  canUseSilverAvatar();
+//  const shouldUseSilverAvatar =
+//  selectedPlan === "silver" &&
+//  shouldShowAvatarForSilver(aiText) &&
+//  canUseSilverAvatar();
 
-if (shouldUseSilverAvatar) {
-  await generateAvatar(aiText);
-  setSilverAvatarTimeUsed((prev) => prev + 20);
-} else {
+// if (shouldUseSilverAvatar) {
+//  await generateAvatar(aiText);
+//  setSilverAvatarTimeUsed((prev) => prev + 20);
+// } else {
   await playCoachReply(aiText);
-}
+//}
   } catch (error) {
     console.error(error);
 
@@ -836,22 +883,24 @@ if (!hasAccess) {
           className="max-h-[520px] w-full max-w-xl rounded-2xl object-cover shadow-xl"
         />
       ) : (
-        <VoiceOrb
-          isRecording={isRecording}
-          isThinking={isLoading || isGeneratingAvatar}
-          isSpeaking={false}
-        />
+       <div className="relative flex items-center justify-center h-[430px] w-full">
+ 
+
+  <div className="relative z-10">
+    <CoachAvatar
+      imageSrc="/silver-avatar.jpg"
+      label="Coaché IA"
+      isIdle={!isRecording && !isLoading && !isSpeaking}
+      isThinking={isLoading}
+      isSpeaking={isSpeaking}
+    />
+  </div>
+</div>
       )}
     </div>
 
     <div className="mt-4 mb-28 text-center">
-      {isLoading && (
-        <p className="mt-2 text-sm text-gray-500">Le coaché réfléchit...</p>
-      )}
-
-      {!videoUrl && isSpeaking && (
-        <p className="mt-2 text-sm text-purple-600">Le coaché parle...</p>
-      )}
+     
 
       {isRecording && (
         <p className="mt-3 text-sm text-red-600">Enregistrement en cours...</p>
@@ -861,19 +910,11 @@ if (!hasAccess) {
         <p className="mt-3 text-sm text-blue-600">Transcription en cours...</p>
       )}
 
-      {isGeneratingAvatar && (
-        <p className="mt-4 text-blue-600">Génération de l’avatar...</p>
-      )}
+     
 
-      <p className="mt-3 text-sm text-indigo-600">
-        Plan Silver : avatar partiel à activer sur moments clés.
-      </p>
+     
 
-      <div className="mt-20 relative z-0 inline-flex rounded-full bg-purple-100 px-4 py-2 text-sm font-semibold text-purple-700">
-        🎭 Avatar Silver : {Math.round(silverAvatarTimeUsed)}s / 180s utilisés
-      </div>
-
-      {isSessionEnded && (
+          {isSessionEnded && (
         <p className="mt-3 text-sm font-medium text-red-600">
           La séance est terminée. Tu peux maintenant consulter ton feedback.
         </p>

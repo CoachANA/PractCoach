@@ -4,12 +4,14 @@ type VoiceOrbProps = {
   isRecording: boolean;
   isThinking: boolean;
   isSpeaking: boolean;
+  showLabel?: boolean;
 };
 
 export default function VoiceOrb({
   isRecording,
   isThinking,
   isSpeaking,
+  showLabel = true,
 }: VoiceOrbProps) {
   let orbClasses = "bg-gradient-to-br from-sky-200 to-blue-500";
   let label = "Prêt à commencer";
@@ -59,7 +61,9 @@ export default function VoiceOrb({
         />
       </div>
 
-      <p className="mt-8 text-base text-gray-600">{label}</p>
+      {showLabel && (
+        <p className="mt-8 text-base text-gray-600">{label}</p>
+      )}
     </div>
   );
 }

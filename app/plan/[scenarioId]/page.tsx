@@ -106,6 +106,7 @@ export default function PlanPage() {
       userId: user.id,
       plan,
       organizationId: creditInfo?.organizationId,
+      scenarioId,
     }),
   });
 
@@ -175,6 +176,40 @@ if (
   }
 }
 
+const [individualBalance, setIndividualBalance] = useState<number | null>(null);
+
+useEffect(() => {
+  async function loadIndividualBalance() {
+    if (isOrganization) return;
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return;
+
+    const response = await fetch("/api/individual/my-credits", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId: user.id,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      setIndividualBalance(Number(data.balance || 0));
+    } else {
+      setIndividualBalance(0);
+    }
+  }
+
+  loadIndividualBalance();
+}, [isOrganization]);
+
   return (
     <main className="min-h-screen bg-gray-50 px-6 py-12">
 
@@ -208,7 +243,8 @@ if (
             Choisis ton expérience
           </h2>
           <p className="mt-2 text-gray-600">
-            Sélectionne le niveau qui correspond à ton budget et à l’expérience souhaitée.
+            Sélectionne le niveau souhaité. Tes crédits sont utilisés en priorité ;
+            si ton solde est insuffisant, le tarif à l’unité s’affiche.
           </p>
         </div>
 
@@ -237,9 +273,19 @@ if (
 
 
                 <span className="rounded-full bg-black px-3 py-1 text-sm text-white">
-                  {isOrganization
-                  ? `${PLAN_COSTS[plan.id as keyof typeof PLAN_COSTS]} crédit${PLAN_COSTS[plan.id as keyof typeof PLAN_COSTS] > 1 ? "s" : ""}`
-                  : plan.price}
+                  {(() => {
+  const cost = PLAN_COSTS[plan.id as keyof typeof PLAN_COSTS];
+
+  if (isOrganization) {
+    return `${cost} crédit${cost > 1 ? "s" : ""}`;
+  }
+
+  if (individualBalance !== null && individualBalance >= cost) {
+    return `${cost} crédit${cost > 1 ? "s" : ""}`;
+  }
+
+  return plan.price;
+})()}
                 </span>
               </div>
 

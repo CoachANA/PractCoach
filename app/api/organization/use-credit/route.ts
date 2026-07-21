@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
+
 const PLAN_COSTS = {
   argent: 1,
   silver: 2,
@@ -11,9 +12,9 @@ type Plan = keyof typeof PLAN_COSTS;
 
 export async function POST(req: Request) {
   try {
-    const { userId, plan, organizationId } = await req.json();
+    const { userId, plan, organizationId, scenarioId } = await req.json();
 
-    if (!userId || !plan) {
+    if (!userId || !plan || !organizationId || !scenarioId) {
       return NextResponse.json(
         { error: "Champs manquants" },
         { status: 400 }
@@ -64,8 +65,32 @@ export async function POST(req: Request) {
 
     if (updateError) throw updateError;
 
+    const { data: sessionPass, error: passError } = await supabaseAdmin
+  .from("session_passes")
+  .insert({
+    user_id: userId,
+    scenario_id: scenarioId,
+    plan,
+    status: "paid",
+  })
+  .select("id")
+  .single();
+
+if (passError) {
+  // Annulation du débit si la création du pass échoue
+  await supabaseAdmin
+    .from("organization_member_credits")
+    .update({
+      used_credits: Number(credit.used_credits || 0),
+    })
+    .eq("id", credit.id);
+
+  throw passError;
+}
+
     return NextResponse.json({
       success: true,
+      passId: sessionPass.id,
       usedCredits: Number(credit.used_credits || 0) + cost,
       remainingCredits: remaining - cost,
     });
