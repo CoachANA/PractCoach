@@ -5,7 +5,7 @@ export default function PrivacyPage() {
         Politique de confidentialité — PractCoach
       </h1>
 
-      <p>Dernière mise à jour : Mai 2026</p>
+      <p>Dernière mise à jour : Juillet 2026</p>
 
       <p>
         PractCoach respecte votre vie privée et s’engage à protéger vos
