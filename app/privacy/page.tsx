@@ -44,7 +44,7 @@ export default function PrivacyPage() {
 
       <section>
         <h2 className="text-xl font-semibold">Contact</h2>
-        <p>azza.nafti87@gmail.com</p>
+        <p>support@practcoach.com</p>
       </section>
     </main>
   );
