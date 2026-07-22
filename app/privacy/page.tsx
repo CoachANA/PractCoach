@@ -36,6 +36,20 @@ export default function PrivacyPage() {
       </section>
 
       <section>
+      <h2 className="text-xl font-semibold">Conditions d'utilisation</h2>
+
+      <p>
+        Consultez également nos{" "}
+        <a
+        href="/terms"
+        className="text-blue-600 underline hover:text-blue-800"
+        >
+        Conditions d'utilisation
+        </a>.
+      </p>
+      </section>
+
+      <section>
         <h2 className="text-xl font-semibold">Partage des données</h2>
         <p>
           Les données ne sont pas vendues à des tiers.
