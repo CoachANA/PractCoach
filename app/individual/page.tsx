@@ -3,6 +3,8 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { Capacitor } from "@capacitor/core";
+import { getIndividualOffering } from "@/lib/revenuecat";
 
 function IndividualContent() {
   const router = useRouter();
@@ -11,6 +13,17 @@ function IndividualContent() {
 
   const [balance, setBalance] = useState<number | null>(null);
   const [loadingBalance, setLoadingBalance] = useState(true);
+
+  const [revenueCatProducts, setRevenueCatProducts] = useState<
+  Array<{
+    packageId: string;
+    productId: string;
+    price: string;
+  }>
+>([]);
+
+const [revenueCatError, setRevenueCatError] = useState<string | null>(null);
+const [loadingRevenueCat, setLoadingRevenueCat] = useState(false);
 
   const paymentStatus = searchParams.get("payment");
 
@@ -48,6 +61,74 @@ function IndividualContent() {
   }
 
   loadBalance();
+}, [router]);
+
+
+useEffect(() => {
+  if (
+    !Capacitor.isNativePlatform() ||
+    Capacitor.getPlatform() !== "android"
+  ) {
+    return;
+  }
+
+  let cancelled = false;
+
+  async function loadRevenueCatProducts() {
+    setLoadingRevenueCat(true);
+    setRevenueCatError(null);
+
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) {
+        throw userError;
+      }
+
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+
+      const offering = await getIndividualOffering(user.id);
+
+      const products = offering.availablePackages.map((item) => ({
+        packageId: item.identifier,
+        productId: item.product.identifier,
+        price: item.product.priceString,
+      }));
+
+      console.table(products);
+
+      if (!cancelled) {
+        setRevenueCatProducts(products);
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Impossible de récupérer les produits RevenueCat.";
+
+      console.error("Erreur RevenueCat :", error);
+
+      if (!cancelled) {
+        setRevenueCatError(message);
+      }
+    } finally {
+      if (!cancelled) {
+        setLoadingRevenueCat(false);
+      }
+    }
+  }
+
+  void loadRevenueCatProducts();
+
+  return () => {
+    cancelled = true;
+  };
 }, [router]);
 
 useEffect(() => {
@@ -196,6 +277,46 @@ const offers = [
     ? "Chargement des crédits..."
     : `${balance ?? 0} crédit${balance === 1 ? "" : "s"} disponible${balance === 1 ? "" : "s"}`}
 </div>
+
+{loadingRevenueCat && (
+  <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4 text-blue-800">
+    Chargement des produits Google Play...
+  </div>
+)}
+
+{revenueCatError && (
+  <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-red-800">
+    <p className="font-semibold">Erreur RevenueCat</p>
+    <p className="mt-1 text-sm">{revenueCatError}</p>
+  </div>
+)}
+
+{revenueCatProducts.length > 0 && (
+  <div className="my-6 rounded-xl border border-green-200 bg-green-50 p-4">
+    <p className="font-semibold text-green-900">
+      Produits Google Play récupérés : {revenueCatProducts.length}
+    </p>
+
+    <div className="mt-3 space-y-2 text-sm text-green-900">
+      {revenueCatProducts.map((product) => (
+        <div
+          key={product.packageId}
+          className="rounded-lg bg-white p-3"
+        >
+          <p>
+            <strong>Package :</strong> {product.packageId}
+          </p>
+          <p>
+            <strong>Produit :</strong> {product.productId}
+          </p>
+          <p>
+            <strong>Prix :</strong> {product.price}
+          </p>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
 
         <div className="grid gap-6">
 

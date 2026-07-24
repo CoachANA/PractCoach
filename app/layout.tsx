@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import RevenueCatInitializer from "./components/RevenueCatInitializer";
 import "./globals.css";
+import AuthDeepLinkHandler from "./components/AuthDeepLinkHandler";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,6 +27,8 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body>
+        <AuthDeepLinkHandler />
+        <RevenueCatInitializer />
         {children}
       </body>
     </html>

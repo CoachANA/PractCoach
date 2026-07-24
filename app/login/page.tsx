@@ -2,31 +2,34 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { Capacitor } from "@capacitor/core";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
 
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
+async function handleLogin(e: React.FormEvent) {
+  e.preventDefault();
+  setMessage("");
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo:
-  typeof window !== "undefined"
-    ? `${window.location.origin}/access`
-    : `${process.env.NEXT_PUBLIC_URL}/access`,
-      },
-    });
+  const emailRedirectTo = Capacitor.isNativePlatform()
+    ? "com.practcoach.app://login-callback"
+    : `${window.location.origin}/access`;
 
-    if (error) {
-      setMessage(error.message);
-      return;
-    }
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      emailRedirectTo,
+    },
+  });
 
-    setMessage("Lien envoyé. Vérifie ta boîte mail.");
+  if (error) {
+    setMessage(error.message);
+    return;
   }
+
+  setMessage("Lien envoyé. Vérifie ta boîte mail.");
+}
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-50 px-6">
