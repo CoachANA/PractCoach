@@ -19,7 +19,7 @@ export default function AuthDeepLinkHandler() {
 
     async function completeLogin(url: string) {
       try {
-        if (!url.startsWith("com.practcoach.app://login-callback")) {
+       if (!url.startsWith("https://practcoach.com/login-callback")) {
           return;
         }
 

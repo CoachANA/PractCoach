@@ -13,8 +13,8 @@ async function handleLogin(e: React.FormEvent) {
   setMessage("");
 
   const emailRedirectTo = Capacitor.isNativePlatform()
-    ? "com.practcoach.app://login-callback"
-    : `${window.location.origin}/access`;
+  ? "https://practcoach.com/login-callback"
+  : `${window.location.origin}/access`;
 
   const { error } = await supabase.auth.signInWithOtp({
     email,
