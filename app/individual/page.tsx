@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Capacitor } from "@capacitor/core";
+import { Purchases } from "@revenuecat/purchases-capacitor";
 import { getIndividualOffering } from "@/lib/revenuecat";
 
 function IndividualContent() {
@@ -14,12 +15,11 @@ function IndividualContent() {
   const [balance, setBalance] = useState<number | null>(null);
   const [loadingBalance, setLoadingBalance] = useState(true);
 
-  const [revenueCatProducts, setRevenueCatProducts] = useState<
-  Array<{
-    packageId: string;
-    productId: string;
-    price: string;
-  }>
+  type RevenueCatPackage =
+  Awaited<ReturnType<typeof getIndividualOffering>>["availablePackages"][number];
+
+const [revenueCatPackages, setRevenueCatPackages] = useState<
+  RevenueCatPackage[]
 >([]);
 
 const [revenueCatError, setRevenueCatError] = useState<string | null>(null);
@@ -95,16 +95,16 @@ useEffect(() => {
 
       const offering = await getIndividualOffering(user.id);
 
-      const products = offering.availablePackages.map((item) => ({
-        packageId: item.identifier,
-        productId: item.product.identifier,
-        price: item.product.priceString,
-      }));
-
-      console.table(products);
+      console.table(
+      offering.availablePackages.map((item) => ({
+      packageId: item.identifier,
+      productId: item.product.identifier,
+      price: item.product.priceString,
+      })),
+      );
 
       if (!cancelled) {
-        setRevenueCatProducts(products);
+          setRevenueCatPackages(offering.availablePackages);
       }
     } catch (error) {
       const message =
@@ -145,6 +145,14 @@ useEffect(() => {
 
 
 async function handleChooseOffer(offerId: string) {
+  const isAndroidApp =
+    Capacitor.isNativePlatform() &&
+    Capacitor.getPlatform() === "android";
+
+  /*
+   * La session à l’unité est choisie plus tard :
+   * bronze, silver ou gold sur la page du scénario.
+   */
   if (offerId === "unit") {
     router.push("/scenarios");
     return;
@@ -157,13 +165,85 @@ async function handleChooseOffer(offerId: string) {
 
   const {
     data: { user },
+    error: userError,
   } = await supabase.auth.getUser();
+
+  if (userError) {
+    console.error("Erreur utilisateur Supabase :", userError);
+    alert("Impossible de vérifier votre connexion.");
+    return;
+  }
 
   if (!user) {
     router.push("/login");
     return;
   }
 
+  /*
+   * APPLICATION ANDROID :
+   * achat Google Play via RevenueCat.
+   */
+  if (isAndroidApp) {
+    try {
+      const selectedPackage = revenueCatPackages.find(
+        (item) => item.identifier === offerId,
+      );
+
+      if (!selectedPackage) {
+        console.error(
+          "Package RevenueCat introuvable :",
+          offerId,
+          revenueCatPackages.map((item) => item.identifier),
+        );
+
+        alert(
+          `Le produit Google Play "${offerId}" est momentanément indisponible.`,
+        );
+        return;
+      }
+
+      const purchaseResult = await Purchases.purchasePackage({
+        aPackage: selectedPackage,
+      });
+
+      console.log("Achat Google Play réussi :", purchaseResult);
+
+      alert(
+        "Achat Google Play réussi. Vos crédits vont être ajoutés à votre compte.",
+      );
+
+      /*
+       * Recharge temporairement la page.
+       * Le solde sera mis à jour après traitement du webhook RevenueCat.
+       */
+      router.refresh();
+      return;
+    } catch (error) {
+      const purchaseError = error as {
+        userCancelled?: boolean;
+        message?: string;
+      };
+
+      if (purchaseError.userCancelled) {
+        console.log("Achat annulé par l’utilisateur.");
+        return;
+      }
+
+      console.error("Erreur achat RevenueCat :", error);
+
+      alert(
+        purchaseError.message ||
+          "Impossible de finaliser l’achat Google Play.",
+      );
+
+      return;
+    }
+  }
+
+  /*
+   * VERSION WEB :
+   * paiement Stripe existant.
+   */
   const response = await fetch("/api/checkout", {
     method: "POST",
     headers: {
@@ -291,28 +371,27 @@ const offers = [
   </div>
 )}
 
-{revenueCatProducts.length > 0 && (
+{revenueCatPackages.length > 0 && (
   <div className="my-6 rounded-xl border border-green-200 bg-green-50 p-4">
     <p className="font-semibold text-green-900">
-      Produits Google Play récupérés : {revenueCatProducts.length}
+      Produits Google Play récupérés : {revenueCatPackages.length}
     </p>
 
     <div className="mt-3 space-y-2 text-sm text-green-900">
-      {revenueCatProducts.map((product) => (
-        <div
-          key={product.packageId}
-          className="rounded-lg bg-white p-3"
-        >
-          <p>
-            <strong>Package :</strong> {product.packageId}
-          </p>
-          <p>
-            <strong>Produit :</strong> {product.productId}
-          </p>
-          <p>
-            <strong>Prix :</strong> {product.price}
-          </p>
-        </div>
+      {revenueCatPackages.map((item) => (
+        <div key={item.identifier} className="rounded-lg bg-white p-3">
+        <p>
+          <strong>Package :</strong> {item.identifier}
+        </p>
+
+        <p>
+          <strong>Produit :</strong> {item.product.identifier}
+        </p>
+
+        <p>
+          <strong>Prix :</strong> {item.product.priceString}
+        </p>
+      </div>
       ))}
     </div>
   </div>
