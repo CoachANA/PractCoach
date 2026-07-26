@@ -7,6 +7,8 @@ import { Capacitor } from "@capacitor/core";
 import { Purchases } from "@revenuecat/purchases-capacitor";
 import { getIndividualOffering } from "@/lib/revenuecat";
 
+
+
 function IndividualContent() {
   const router = useRouter();
 
@@ -142,6 +144,12 @@ useEffect(() => {
     window.clearTimeout(timeoutId);
   };
 }, [paymentStatus, router]);
+
+function getAndroidPackagePrice(packageId: string) {
+  return revenueCatPackages.find(
+    (item) => item.identifier === packageId,
+  )?.product.priceString;
+}
 
 
 async function handleChooseOffer(offerId: string) {
@@ -411,6 +419,15 @@ const offers = [
               <p className="mt-3 text-gray-600">
                 {offer.description}
               </p>
+
+              {Capacitor.isNativePlatform() &&
+              Capacitor.getPlatform() === "android" &&
+                offer.id !== "unit" &&
+                offer.id !== "monthly" && (
+                <p className="mt-4 text-xl font-bold text-gray-900">
+                    {getAndroidPackagePrice(offer.id) || "..."}
+                </p>
+              )}
 
               <button
                 onClick={() => handleChooseOffer(offer.id)}

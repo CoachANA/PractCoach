@@ -6,7 +6,10 @@ import { scenarios } from "@/data/scenarios";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
-import { purchaseRevenueCatPackage } from "@/lib/revenuecat";
+import {
+  getIndividualOffering,
+  purchaseRevenueCatPackage,
+} from "@/lib/revenuecat";
 
 const plans = [
   {
@@ -61,6 +64,69 @@ export default function PlanPage() {
   const isOrganization = searchParams.get("source") === "organization";
 
   const scenario = scenarios.find((item) => item.id === scenarioId);
+
+  const [androidPrices, setAndroidPrices] = useState<
+  Partial<Record<"argent" | "silver" | "gold", string>>
+>({});
+
+useEffect(() => {
+  const isAndroidApp =
+    Capacitor.isNativePlatform() &&
+    Capacitor.getPlatform() === "android";
+
+  if (!isAndroidApp || isOrganization) {
+    return;
+  }
+
+  let cancelled = false;
+
+  async function loadAndroidPrices() {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        return;
+      }
+
+      const offering = await getIndividualOffering(user.id);
+
+      const prices: Partial<
+        Record<"argent" | "silver" | "gold", string>
+      > = {};
+
+      for (const item of offering.availablePackages) {
+        if (item.identifier === "bronze") {
+          prices.argent = item.product.priceString;
+        }
+
+        if (item.identifier === "silver") {
+          prices.silver = item.product.priceString;
+        }
+
+        if (item.identifier === "gold") {
+          prices.gold = item.product.priceString;
+        }
+      }
+
+      if (!cancelled) {
+        setAndroidPrices(prices);
+      }
+    } catch (error) {
+      console.error(
+        "Impossible de récupérer les prix Google Play :",
+        error,
+      );
+    }
+  }
+
+  void loadAndroidPrices();
+
+  return () => {
+    cancelled = true;
+  };
+}, [isOrganization]);
 
   useEffect(() => {
   async function loadCredits() {
@@ -335,7 +401,19 @@ useEffect(() => {
     return `${cost} crédit${cost > 1 ? "s" : ""}`;
   }
 
-  return plan.price;
+  const isAndroidApp =
+  Capacitor.isNativePlatform() &&
+  Capacitor.getPlatform() === "android";
+
+if (isAndroidApp) {
+  return (
+    androidPrices[
+      plan.id as "argent" | "silver" | "gold"
+    ] || "..."
+  );
+}
+
+return plan.price;
 })()}
                 </span>
               </div>

@@ -3,7 +3,11 @@
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Capacitor } from "@capacitor/core";
-import { purchaseRevenueCatPackage } from "@/lib/revenuecat";
+import {
+  getOrganizationOffering,
+  purchaseRevenueCatPackage,
+} from "@/lib/revenuecat";
+import { useEffect, useState } from "react";
 
 const packs = [
   {
@@ -29,9 +33,67 @@ const packs = [
 export default function OrganizationPacksPage() {
   const router = useRouter();
 
+  const [starterAndroidPrice, setStarterAndroidPrice] =
+  useState<string | null>(null);
+
   const isAndroidApp =
   Capacitor.isNativePlatform() &&
   Capacitor.getPlatform() === "android";
+
+  useEffect(() => {
+  const isAndroidApp =
+    Capacitor.isNativePlatform() &&
+    Capacitor.getPlatform() === "android";
+
+  if (!isAndroidApp) {
+    return;
+  }
+
+  let cancelled = false;
+
+  async function loadStarterPrice() {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        return;
+      }
+
+      const offering =
+        await getOrganizationOffering(user.id);
+
+      const starterPackage =
+        offering.availablePackages.find(
+          (item) => item.identifier === "starter",
+        );
+
+      if (!starterPackage) {
+        throw new Error(
+          "Le package RevenueCat 'starter' est introuvable.",
+        );
+      }
+
+      if (!cancelled) {
+        setStarterAndroidPrice(
+          starterPackage.product.priceString,
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Impossible de récupérer le prix Starter :",
+        error,
+      );
+    }
+  }
+
+  void loadStarterPrice();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
 
   async function handleBuyPack(pack: (typeof packs)[number]) {
   const {
@@ -180,15 +242,21 @@ export default function OrganizationPacksPage() {
               <p className="mt-6 text-4xl font-bold">{pack.credits}</p>
               <p className="mt-1 text-gray-600">crédits</p>
 
-              <p className="mt-8 text-xl font-bold">{pack.price}</p>
+              <p className="mt-8 text-xl font-bold">
+                    {isAndroidApp && pack.id === "starter"
+                    ? starterAndroidPrice || "..."
+                    : pack.price}
+              </p>
 
               <button
                   onClick={() => handleBuyPack(pack)}
                   className="mt-8 w-full rounded-lg bg-black px-4 py-3 text-white"
                   >
-                  {isAndroidApp && pack.id !== "starter"
-                  ? "Disponible sur le Web"
-                  : "Acheter ce pack"}
+                  {isAndroidApp && pack.id === "starter"
+                  ? starterAndroidPrice || "..."
+                  : isAndroidApp
+                  ? "Achat sur le Web"
+                  : pack.price}
               </button>
             </div>
           ))}
