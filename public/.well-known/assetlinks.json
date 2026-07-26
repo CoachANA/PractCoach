@@ -1,0 +1,11 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.practcoach.app",
+      "sha256_cert_fingerprints":
+        ["CE:A2:D1:87:78:4C:83:12:61:DB:E7:85:09:8F:A1:52:10:E3:C9:27:60:E4:79:C0:BD:0F:6B:B1:D0:39:F5:F1"]
+    }
+  }
+]
