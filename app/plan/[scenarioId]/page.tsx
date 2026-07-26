@@ -5,6 +5,8 @@ import { supabase } from "@/lib/supabase";
 import { scenarios } from "@/data/scenarios";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { Capacitor } from "@capacitor/core";
+import { purchaseRevenueCatPackage } from "@/lib/revenuecat";
 
 const plans = [
   {
@@ -35,6 +37,12 @@ const PLAN_COSTS = {
   silver: 2,
   gold: 5,
 };
+
+const REVENUECAT_PACKAGE_BY_PLAN = {
+  argent: "bronze",
+  silver: "silver",
+  gold: "gold",
+} as const;
 
 export default function PlanPage() {
   const router = useRouter();
@@ -150,6 +158,49 @@ if (
       "Impossible d’utiliser vos crédits pour le moment."
   );
   return;
+}
+
+const isAndroidApp =
+  Capacitor.isNativePlatform() &&
+  Capacitor.getPlatform() === "android";
+
+if (isAndroidApp) {
+  try {
+    const packageId = REVENUECAT_PACKAGE_BY_PLAN[plan];
+
+    await purchaseRevenueCatPackage({
+      appUserId: user.id,
+      offeringId: "individual",
+      packageId,
+    });
+
+    alert("Achat Google Play réussi.");
+
+    router.push(
+      `/session/${scenarioId}?plan=${plan}&source=individual`,
+    );
+
+    return;
+  } catch (error) {
+    const purchaseError = error as {
+      userCancelled?: boolean;
+      message?: string;
+    };
+
+    if (purchaseError.userCancelled) {
+      console.log("Achat Google Play annulé par l’utilisateur.");
+      return;
+    }
+
+    console.error("Erreur achat Google Play :", error);
+
+    alert(
+      purchaseError.message ||
+        "Impossible de finaliser l’achat Google Play.",
+    );
+
+    return;
+  }
 }
 
 

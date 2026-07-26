@@ -10,8 +10,12 @@ let isConfigured = false;
 export async function configureRevenueCat(
   appUserId?: string,
 ): Promise<void> {
-  // RevenueCat natif ne doit pas être initialisé dans le navigateur web.
+  // RevenueCat natif ne doit pas être initialisé dans le navigateur Web.
   if (!Capacitor.isNativePlatform()) {
+    return;
+  }
+
+  if (Capacitor.getPlatform() !== "android") {
     return;
   }
 
@@ -19,16 +23,13 @@ export async function configureRevenueCat(
     return;
   }
 
-  const apiKey = process.env.NEXT_PUBLIC_REVENUECAT_ANDROID_API_KEY;
+  const apiKey =
+    process.env.NEXT_PUBLIC_REVENUECAT_ANDROID_API_KEY;
 
   if (!apiKey) {
     throw new Error(
       "La variable NEXT_PUBLIC_REVENUECAT_ANDROID_API_KEY est absente.",
     );
-  }
-
-  if (Capacitor.getPlatform() !== "android") {
-    return;
   }
 
   await Purchases.setLogLevel({
@@ -43,21 +44,31 @@ export async function configureRevenueCat(
   isConfigured = true;
 }
 
-export async function getRevenueCatOfferings(): Promise<PurchasesOfferings> {
-  if (!Capacitor.isNativePlatform()) {
+export async function getRevenueCatOfferings(
+  appUserId?: string,
+): Promise<PurchasesOfferings> {
+  if (
+    !Capacitor.isNativePlatform() ||
+    Capacitor.getPlatform() !== "android"
+  ) {
     throw new Error(
-      "Les offres RevenueCat sont disponibles uniquement dans l’application mobile.",
+      "Les offres RevenueCat sont disponibles uniquement dans l’application Android.",
     );
   }
+
+  await configureRevenueCat(appUserId);
 
   return Purchases.getOfferings();
 }
 
-export async function getIndividualOffering(appUserId?: string) {
-  await configureRevenueCat(appUserId);
+export async function getIndividualOffering(
+  appUserId?: string,
+) {
+  const offerings =
+    await getRevenueCatOfferings(appUserId);
 
-  const offerings = await Purchases.getOfferings();
-  const individualOffering = offerings.all["individual"];
+  const individualOffering =
+    offerings.all["individual"];
 
   if (!individualOffering) {
     throw new Error(
@@ -66,4 +77,65 @@ export async function getIndividualOffering(appUserId?: string) {
   }
 
   return individualOffering;
+}
+
+export async function getOrganizationOffering(
+  appUserId?: string,
+) {
+  const offerings =
+    await getRevenueCatOfferings(appUserId);
+
+  const organizationOffering =
+    offerings.all["organization"];
+
+  if (!organizationOffering) {
+    throw new Error(
+      "L’Offering RevenueCat 'organization' est introuvable.",
+    );
+  }
+
+  return organizationOffering;
+}
+
+type PurchasePackageParameters = {
+  appUserId: string;
+  offeringId: "individual" | "organization";
+  packageId: string;
+};
+
+export async function purchaseRevenueCatPackage({
+  appUserId,
+  offeringId,
+  packageId,
+}: PurchasePackageParameters) {
+  const offerings =
+    await getRevenueCatOfferings(appUserId);
+
+  const offering = offerings.all[offeringId];
+
+  if (!offering) {
+    throw new Error(
+      `L’Offering RevenueCat '${offeringId}' est introuvable.`,
+    );
+  }
+
+  const selectedPackage =
+    offering.availablePackages.find(
+      (item) => item.identifier === packageId,
+    );
+
+  if (!selectedPackage) {
+    const availablePackageIds =
+      offering.availablePackages
+        .map((item) => item.identifier)
+        .join(", ");
+
+    throw new Error(
+      `Le package RevenueCat '${packageId}' est introuvable dans l’Offering '${offeringId}'. Packages disponibles : ${availablePackageIds || "aucun"}.`,
+    );
+  }
+
+  return Purchases.purchasePackage({
+    aPackage: selectedPackage,
+  });
 }
