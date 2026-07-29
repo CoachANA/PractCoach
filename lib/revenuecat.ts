@@ -23,14 +23,25 @@ export async function configureRevenueCat(
     return;
   }
 
-  const apiKey =
-    process.env.NEXT_PUBLIC_REVENUECAT_ANDROID_API_KEY;
+  const platform = Capacitor.getPlatform();
 
-  if (!apiKey) {
-    throw new Error(
-      "La variable NEXT_PUBLIC_REVENUECAT_ANDROID_API_KEY est absente.",
-    );
+  let apiKey: string | undefined;
+
+  if (platform === "android") {
+  apiKey = process.env.NEXT_PUBLIC_REVENUECAT_ANDROID_API_KEY;
+  } else if (platform === "ios") {
+  apiKey = process.env.NEXT_PUBLIC_REVENUECAT_IOS_API_KEY;
+  } else {
+  return;
   }
+
+if (!apiKey) {
+  throw new Error(
+    platform === "ios"
+      ? "La variable NEXT_PUBLIC_REVENUECAT_IOS_API_KEY est absente."
+      : "La variable NEXT_PUBLIC_REVENUECAT_ANDROID_API_KEY est absente.",
+  );
+}
 
   await Purchases.setLogLevel({
     level: LOG_LEVEL.DEBUG,
@@ -47,12 +58,17 @@ export async function configureRevenueCat(
 export async function getRevenueCatOfferings(
   appUserId?: string,
 ): Promise<PurchasesOfferings> {
-  if (
-    !Capacitor.isNativePlatform() ||
-    Capacitor.getPlatform() !== "android"
-  ) {
+  if (!Capacitor.isNativePlatform()) {
     throw new Error(
-      "Les offres RevenueCat sont disponibles uniquement dans l’application Android.",
+      "Les offres RevenueCat sont disponibles uniquement dans l’application mobile.",
+    );
+  }
+
+  const platform = Capacitor.getPlatform();
+
+  if (platform !== "android" && platform !== "ios") {
+    throw new Error(
+      `La plateforme "${platform}" n’est pas prise en charge par RevenueCat.`,
     );
   }
 
