@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "7M3455ZY22.com.practcoach.app",
+        "paths": [
+          "/login-callback",
+          "/login-callback/*"
+        ]
+      }
+    ]
+  }
+}
