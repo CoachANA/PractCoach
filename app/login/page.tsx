@@ -60,7 +60,7 @@ export default function LoginPage() {
        * authentification par Magic Link.
        */
       const emailRedirectTo = Capacitor.isNativePlatform()
-        ? "https://practcoach.com/login-callback"
+        ? "https://www.practcoach.com/login-callback"
         : `${window.location.origin}/access`;
 
       const { error } = await supabase.auth.signInWithOtp({
