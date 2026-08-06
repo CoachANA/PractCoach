@@ -5,9 +5,9 @@ const config: CapacitorConfig = {
   appName: 'Pract Coach',
   webDir: 'out',
   server: {
-    url: 'https://pract-coach.vercel.app',
-    cleartext: false,
-  },
+      url: "https://practcoach.com",
+      cleartext: false,
+    },
 };
 
 export default config;
