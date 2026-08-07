@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const APP_CALLBACK_URL = "com.practcoach.app://login-callback";
 
 export default function LoginCallbackPage() {
   const [message, setMessage] = useState(
-    "Ouverture de PractCoach en cours...",
+     "Appuie sur le bouton ci-dessous pour ouvrir PractCoach.",
   );
 
   function openPractCoach() {
@@ -28,9 +28,7 @@ export default function LoginCallbackPage() {
     }, 1500);
   }
 
-  useEffect(() => {
-    openPractCoach();
-  }, []);
+ 
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-50 px-6">

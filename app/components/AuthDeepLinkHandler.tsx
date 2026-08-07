@@ -19,9 +19,9 @@ export default function AuthDeepLinkHandler() {
 
     async function completeLogin(url: string) {
       try {
-      const isUniversalLink = url.startsWith(
-          "https://practcoach.com/login-callback",
-          );
+      const isUniversalLink =
+          url.startsWith("https://practcoach.com/login-callback") ||
+          url.startsWith("https://www.practcoach.com/login-callback");
 
       const isCustomSchemeLink = url.startsWith(
           "com.practcoach.app://login-callback",
