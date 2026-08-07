@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Pract Coach',
   webDir: 'out',
   server: {
-      url: "https://practcoach.com",
+      url: "https://www.practcoach.com",
       cleartext: false,
     },
 };
