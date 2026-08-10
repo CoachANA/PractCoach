@@ -67,12 +67,9 @@ const [loadingRevenueCat, setLoadingRevenueCat] = useState(false);
 
 
 useEffect(() => {
-  if (
-    !Capacitor.isNativePlatform() ||
-    Capacitor.getPlatform() !== "android"
-  ) {
-    return;
-  }
+ if (!Capacitor.isNativePlatform()) {
+  return;
+}
 
   let cancelled = false;
 
@@ -153,9 +150,7 @@ function getAndroidPackagePrice(packageId: string) {
 
 
 async function handleChooseOffer(offerId: string) {
-  const isAndroidApp =
-    Capacitor.isNativePlatform() &&
-    Capacitor.getPlatform() === "android";
+  const isNativeApp = Capacitor.isNativePlatform();
 
   /*
    * La session à l’unité est choisie plus tard :
@@ -191,7 +186,7 @@ async function handleChooseOffer(offerId: string) {
    * APPLICATION ANDROID :
    * achat Google Play via RevenueCat.
    */
-  if (isAndroidApp) {
+  if (isNativeApp) {
     try {
       const selectedPackage = revenueCatPackages.find(
         (item) => item.identifier === offerId,
@@ -205,7 +200,7 @@ async function handleChooseOffer(offerId: string) {
         );
 
         alert(
-          `Le produit Google Play "${offerId}" est momentanément indisponible.`,
+          `Le produit "${offerId}" est momentanément indisponible.`,
         );
         return;
       }
@@ -214,10 +209,10 @@ async function handleChooseOffer(offerId: string) {
         aPackage: selectedPackage,
       });
 
-      console.log("Achat Google Play réussi :", purchaseResult);
+      console.log("Achat réussi :", purchaseResult);
 
       alert(
-        "Achat Google Play réussi. Vos crédits vont être ajoutés à votre compte.",
+        "Achat réussi. Vos crédits vont être ajoutés à votre compte.",
       );
 
       /*
@@ -241,7 +236,7 @@ async function handleChooseOffer(offerId: string) {
 
       alert(
         purchaseError.message ||
-          "Impossible de finaliser l’achat Google Play.",
+          "Impossible de finaliser l’achat.",
       );
 
       return;
@@ -368,7 +363,7 @@ const offers = [
 
 {loadingRevenueCat && (
   <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4 text-blue-800">
-    Chargement des produits Google Play...
+    Chargement des produits...
   </div>
 )}
 
@@ -382,7 +377,7 @@ const offers = [
 {revenueCatPackages.length > 0 && (
   <div className="my-6 rounded-xl border border-green-200 bg-green-50 p-4">
     <p className="font-semibold text-green-900">
-      Produits Google Play récupérés : {revenueCatPackages.length}
+      Produits récupérés : {revenueCatPackages.length}
     </p>
 
     <div className="mt-3 space-y-2 text-sm text-green-900">

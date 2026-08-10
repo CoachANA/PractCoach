@@ -36,18 +36,12 @@ export default function OrganizationPacksPage() {
   const [starterAndroidPrice, setStarterAndroidPrice] =
   useState<string | null>(null);
 
-  const isAndroidApp =
-  Capacitor.isNativePlatform() &&
-  Capacitor.getPlatform() === "android";
+  const isNativeApp = Capacitor.isNativePlatform();
 
   useEffect(() => {
-  const isAndroidApp =
-    Capacitor.isNativePlatform() &&
-    Capacitor.getPlatform() === "android";
-
-  if (!isAndroidApp) {
-    return;
-  }
+  if (!Capacitor.isNativePlatform()) {
+  return;
+}
 
   let cancelled = false;
 
@@ -129,14 +123,12 @@ export default function OrganizationPacksPage() {
     return;
   }
 
-  const isAndroidApp =
-    Capacitor.isNativePlatform() &&
-    Capacitor.getPlatform() === "android";
+  const isNativeApp = Capacitor.isNativePlatform();
 
   /*
    * APPLICATION ANDROID
    */
-  if (isAndroidApp) {
+  if (isNativeApp) {
     /*
      * Starter est disponible dans Google Play et dans
      * l’Offering RevenueCat "organization".
@@ -150,7 +142,7 @@ export default function OrganizationPacksPage() {
         });
 
         alert(
-          "Achat Google Play réussi. Les crédits vont être ajoutés à votre organisation.",
+          "Achat réussi. Les crédits vont être ajoutés à votre organisation.",
         );
 
         router.push("/organization/admin");
@@ -162,18 +154,18 @@ export default function OrganizationPacksPage() {
         };
 
         if (purchaseError.userCancelled) {
-          console.log("Achat Google Play annulé par l’utilisateur.");
+          console.log("Achat annulé par l’utilisateur.");
           return;
         }
 
         console.error(
-          "Erreur achat Starter via Google Play :",
+          "Erreur achat Starter :",
           error,
         );
 
         alert(
           purchaseError.message ||
-            "Impossible de finaliser l’achat Google Play.",
+            "Impossible de finaliser l’achat.",
         );
 
         return;
@@ -243,7 +235,7 @@ export default function OrganizationPacksPage() {
               <p className="mt-1 text-gray-600">crédits</p>
 
               <p className="mt-8 text-xl font-bold">
-                    {isAndroidApp && pack.id === "starter"
+                    {isNativeApp && pack.id === "starter"
                     ? starterAndroidPrice || "..."
                     : pack.price}
               </p>
@@ -252,9 +244,9 @@ export default function OrganizationPacksPage() {
                   onClick={() => handleBuyPack(pack)}
                   className="mt-8 w-full rounded-lg bg-black px-4 py-3 text-white"
                   >
-                  {isAndroidApp && pack.id === "starter"
+                  {isNativeApp && pack.id === "starter"
                   ? starterAndroidPrice || "..."
-                  : isAndroidApp
+                  : isNativeApp
                   ? "Achat sur le Web"
                   : pack.price}
               </button>
