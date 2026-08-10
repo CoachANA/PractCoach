@@ -15,10 +15,6 @@ export async function configureRevenueCat(
     return;
   }
 
-  if (Capacitor.getPlatform() !== "android") {
-    return;
-  }
-
   if (isConfigured) {
     return;
   }
