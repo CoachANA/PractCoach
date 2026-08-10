@@ -70,13 +70,11 @@ export default function PlanPage() {
 >({});
 
 useEffect(() => {
-  const isAndroidApp =
-    Capacitor.isNativePlatform() &&
-    Capacitor.getPlatform() === "android";
+  const isNativeApp = Capacitor.isNativePlatform();
 
-  if (!isAndroidApp || isOrganization) {
-    return;
-  }
+if (!isNativeApp || isOrganization) {
+  return;
+}
 
   let cancelled = false;
 
@@ -115,7 +113,7 @@ useEffect(() => {
       }
     } catch (error) {
       console.error(
-        "Impossible de récupérer les prix Google Play :",
+        "Impossible de récupérer les prix RevenueCat :",
         error,
       );
     }
@@ -226,11 +224,9 @@ if (
   return;
 }
 
-const isAndroidApp =
-  Capacitor.isNativePlatform() &&
-  Capacitor.getPlatform() === "android";
+const isNativeApp = Capacitor.isNativePlatform();
 
-if (isAndroidApp) {
+if (isNativeApp) {
   try {
     const packageId = REVENUECAT_PACKAGE_BY_PLAN[plan];
 
@@ -240,7 +236,7 @@ if (isAndroidApp) {
       packageId,
     });
 
-    alert("Achat Google Play réussi.");
+    alert("Achat réussi.");
 
     router.push(
       `/session/${scenarioId}?plan=${plan}&source=individual`,
@@ -254,15 +250,15 @@ if (isAndroidApp) {
     };
 
     if (purchaseError.userCancelled) {
-      console.log("Achat Google Play annulé par l’utilisateur.");
+      console.log("Achat annulé par l’utilisateur.");
       return;
     }
 
-    console.error("Erreur achat Google Play :", error);
+    console.error("Erreur achat :", error);
 
     alert(
       purchaseError.message ||
-        "Impossible de finaliser l’achat Google Play.",
+        "Impossible de finaliser l’achat.",
     );
 
     return;
@@ -401,11 +397,9 @@ useEffect(() => {
     return `${cost} crédit${cost > 1 ? "s" : ""}`;
   }
 
-  const isAndroidApp =
-  Capacitor.isNativePlatform() &&
-  Capacitor.getPlatform() === "android";
+  const isNativeApp = Capacitor.isNativePlatform();
 
-if (isAndroidApp) {
+if (isNativeApp) {
   return (
     androidPrices[
       plan.id as "argent" | "silver" | "gold"
