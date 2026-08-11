@@ -94,24 +94,19 @@ if (!isNativeApp || isOrganization) {
         Record<"argent" | "silver" | "gold", string>
       > = {};
 
- for (const item of offering.availablePackages) {
-  const displayedPrice =
-    Capacitor.getPlatform() === "ios"
-      ? `${item.product.priceString} [${item.product.currencyCode}]`
-      : item.product.priceString;
+      for (const item of offering.availablePackages) {
+        if (item.identifier === "bronze") {
+          prices.argent = item.product.priceString;
+        }
 
-  if (item.identifier === "bronze") {
-    prices.argent = displayedPrice;
-  }
+        if (item.identifier === "silver") {
+          prices.silver = item.product.priceString;
+        }
 
-  if (item.identifier === "silver") {
-    prices.silver = displayedPrice;
-  }
-
-  if (item.identifier === "gold") {
-    prices.gold = displayedPrice;
-  }
-}
+        if (item.identifier === "gold") {
+          prices.gold = item.product.priceString;
+        }
+      }
 
       if (!cancelled) {
         setAndroidPrices(prices);
