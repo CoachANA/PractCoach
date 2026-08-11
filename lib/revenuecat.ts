@@ -48,13 +48,6 @@ if (!apiKey) {
     appUserID: appUserId,
   });
 
-  if (platform === "ios") {
-  const storefront = await Purchases.getStorefront();
-
-  alert(
-    `RevenueCat storefront : ${JSON.stringify(storefront)}`
-  );
-}
 
   isConfigured = true;
 }
