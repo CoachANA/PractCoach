@@ -33,10 +33,10 @@
 		<array>
 			<string>com.practcoach.app</string>
 		</array>
-		<key>NSMicrophoneUsageDescription</key>
-			<string>PractCoach utilise le microphone pour enregistrer vos réponses pendant les sessions de coaching.</string>
 	</dict>
 	</array>
+	<key>NSMicrophoneUsageDescription</key>
+			<string>PractCoach utilise le microphone pour enregistrer vos réponses pendant les sessions de coaching.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
