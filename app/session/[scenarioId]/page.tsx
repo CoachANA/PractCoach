@@ -562,10 +562,18 @@ async function handleGenerateGoldFeedback() {
 }
 
 async function handleStartRecording() {
+  alert("DIAG 1 - handleStartRecording démarré");
   setIsSpeaking(false);
   try {
+    alert(
+  `DIAG 2 - mediaDevices=${String(!!navigator.mediaDevices)} getUserMedia=${String(
+    !!navigator.mediaDevices?.getUserMedia,
+  )}`,
+);
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaStreamRef.current = stream;
+
+    alert("DIAG 3 - accès microphone réussi");
 
     const mimeType = MediaRecorder.isTypeSupported("audio/mp4")
   ? "audio/mp4"
@@ -632,8 +640,14 @@ const recorder = new MediaRecorder(
     setMediaRecorder(recorder);
     setIsRecording(true);
   } catch (error) {
-    console.error("Erreur micro :", error);
-  }
+  const message =
+    error instanceof Error
+      ? `${error.name}: ${error.message}`
+      : String(error);
+
+  alert(`DIAG ERREUR MICRO - ${message}`);
+  console.error("Erreur micro :", error);
+}
 }
 
 function handleStopRecording() {
@@ -848,17 +862,31 @@ if (!hasAccess) {
         </button>
 
         <div className="flex justify-center">
-          <button
-            onClick={handleStartRecording}
-            disabled={isLoading || isSpeaking || isRecording || isSessionEnded}
-            className={`flex h-20 w-20 items-center justify-center rounded-full text-2xl shadow-xl transition ${
-              isLoading || isSpeaking || isRecording || isSessionEnded
-                ? "bg-gray-400 text-white opacity-70"
-                : "bg-black text-white"
-            }`}
-          >
-            🎤
-          </button>
+          <div className="flex flex-col items-center gap-2">
+  <button
+    onClick={() => {
+      alert(
+        `CLICK MICRO\nisLoading=${isLoading}\nisSpeaking=${isSpeaking}\nisRecording=${isRecording}\nisSessionEnded=${isSessionEnded}`,
+      );
+
+      void handleStartRecording();
+    }}
+    disabled={false}
+    className="relative z-[100] flex h-20 w-20 select-none items-center justify-center rounded-full bg-black text-2xl text-white shadow-xl"
+    style={{
+      WebkitUserSelect: "none",
+      userSelect: "none",
+      touchAction: "manipulation",
+    }}
+  >
+    🎤
+  </button>
+
+  <p className="text-xs text-gray-500">
+    loading:{String(isLoading)} / speaking:{String(isSpeaking)} /
+    recording:{String(isRecording)} / ended:{String(isSessionEnded)}
+  </p>
+</div>
 
           <button
             onClick={handleEndSession}
@@ -932,17 +960,31 @@ if (!hasAccess) {
         </button>
 
         <div className="flex justify-center">
-          <button
-            onClick={handleStartRecording}
-            disabled={isLoading || isSpeaking || isRecording || isSessionEnded}
-            className={`flex h-20 w-20 items-center justify-center rounded-full text-2xl shadow-xl transition ${
-              isLoading || isSpeaking || isRecording || isSessionEnded
-                ? "bg-gray-400 text-white opacity-70"
-                : "bg-black text-white"
-            }`}
-          >
-            🎤
-          </button>
+         <div className="flex flex-col items-center gap-2">
+  <button
+    onClick={() => {
+      alert(
+        `CLICK MICRO\nisLoading=${isLoading}\nisSpeaking=${isSpeaking}\nisRecording=${isRecording}\nisSessionEnded=${isSessionEnded}`,
+      );
+
+      void handleStartRecording();
+    }}
+    disabled={false}
+    className="relative z-[100] flex h-20 w-20 select-none items-center justify-center rounded-full bg-black text-2xl text-white shadow-xl"
+    style={{
+      WebkitUserSelect: "none",
+      userSelect: "none",
+      touchAction: "manipulation",
+    }}
+  >
+    🎤
+  </button>
+
+  <p className="text-xs text-gray-500">
+    loading:{String(isLoading)} / speaking:{String(isSpeaking)} /
+    recording:{String(isRecording)} / ended:{String(isSessionEnded)}
+  </p>
+</div>
 
           <button
             onClick={handleEndSession}

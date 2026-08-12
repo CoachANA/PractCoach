@@ -43,21 +43,21 @@ export default function VoiceOrb({
     <div className="flex w-full flex-col items-center justify-center py-10">
       <div className="relative flex items-center justify-center">
         <div
-          className={`absolute h-72 w-72 rounded-full bg-blue-200 blur-3xl ${ringOpacity} transition-all duration-500`}
+          className={`pointer-events-none select-none absolute h-72 w-72 rounded-full bg-blue-200 blur-3xl ${ringOpacity} transition-all duration-500`}
         />
 
         <div
-          className={`absolute h-56 w-56 rounded-full border border-white/30 ${ringOpacity} ${ringAnimation}`}
+          className={`pointer-events-none select-none absolute h-56 w-56 rounded-full border border-white/30 ${ringOpacity} ${ringAnimation}`}
         />
         <div
-          className={`absolute h-64 w-64 rounded-full border border-white/20 ${ringOpacity} ${ringAnimation} [animation-delay:200ms]`}
+          className={`pointer-events-none select-none absolute h-64 w-64 rounded-full border border-white/20 ${ringOpacity} ${ringAnimation} [animation-delay:200ms]`}
         />
         <div
-          className={`absolute h-72 w-72 rounded-full border border-white/10 ${ringOpacity} ${ringAnimation} [animation-delay:400ms]`}
+          className={`pointer-events-none select-none absolute h-72 w-72 rounded-full border border-white/10 ${ringOpacity} ${ringAnimation} [animation-delay:400ms]`}
         />
 
         <div
-          className={`relative rounded-full shadow-2xl transition-all duration-500 ${orbClasses} ${ringScale} h-40 w-40`}
+          className={`pointer-events-none select-none relative rounded-full shadow-2xl transition-all duration-500 ${orbClasses} ${ringScale} h-40 w-40`}
         />
       </div>
 
