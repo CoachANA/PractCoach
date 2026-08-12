@@ -562,14 +562,20 @@ async function handleGenerateGoldFeedback() {
 }
 
 async function handleStartRecording() {
-  alert("DIAG 1 - handleStartRecording démarré");
+ alert(
+    `DIAG CONTEXT
+href=${window.location.href}
+origin=${window.location.origin}
+protocol=${window.location.protocol}
+isSecureContext=${String(window.isSecureContext)}
+mediaDevices=${String(!!navigator.mediaDevices)}
+getUserMedia=${String(!!navigator.mediaDevices?.getUserMedia)}
+MediaRecorder=${String(typeof MediaRecorder !== "undefined")}`
+  );
+
   setIsSpeaking(false);
+
   try {
-    alert(
-  `DIAG 2 - mediaDevices=${String(!!navigator.mediaDevices)} getUserMedia=${String(
-    !!navigator.mediaDevices?.getUserMedia,
-  )}`,
-);
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaStreamRef.current = stream;
 
