@@ -231,18 +231,48 @@ if (isNativeApp) {
     const packageId = REVENUECAT_PACKAGE_BY_PLAN[plan];
 
     await purchaseRevenueCatPackage({
-      appUserId: user.id,
-      offeringId: "individual",
-      packageId,
-    });
+  appUserId: user.id,
+  offeringId: "individual",
+  packageId,
+});
 
-    alert("Achat réussi.");
+const passResponse = await fetch(
+  "/api/individual/create-session-pass",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      userId: user.id,
+      scenarioId,
+      plan,
+    }),
+  }
+);
 
-    router.push(
-      `/session/${scenarioId}?plan=${plan}&source=individual`,
-    );
+const passResult = await passResponse.json();
 
-    return;
+if (!passResponse.ok) {
+  console.error(
+    "Erreur création session pass après achat RevenueCat :",
+    passResult
+  );
+
+  alert(
+    "Votre achat a bien été effectué, mais l'accès à la session n'a pas pu être créé."
+  );
+
+  return;
+}
+
+alert("Achat réussi.");
+
+router.push(
+  `/session/${scenarioId}?plan=${plan}&source=individual`,
+);
+
+return;
   } catch (error) {
     const purchaseError = error as {
       userCancelled?: boolean;
