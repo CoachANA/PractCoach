@@ -562,24 +562,12 @@ async function handleGenerateGoldFeedback() {
 }
 
 async function handleStartRecording() {
- alert(
-    `DIAG CONTEXT
-href=${window.location.href}
-origin=${window.location.origin}
-protocol=${window.location.protocol}
-isSecureContext=${String(window.isSecureContext)}
-mediaDevices=${String(!!navigator.mediaDevices)}
-getUserMedia=${String(!!navigator.mediaDevices?.getUserMedia)}
-MediaRecorder=${String(typeof MediaRecorder !== "undefined")}`
-  );
 
   setIsSpeaking(false);
 
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaStreamRef.current = stream;
-
-    alert("DIAG 3 - accès microphone réussi");
 
     const mimeType = MediaRecorder.isTypeSupported("audio/mp4")
   ? "audio/mp4"
@@ -651,8 +639,7 @@ const recorder = new MediaRecorder(
       ? `${error.name}: ${error.message}`
       : String(error);
 
-  alert(`DIAG ERREUR MICRO - ${message}`);
-  console.error("Erreur micro :", error);
+    console.error("Erreur micro :", error);
 }
 }
 
@@ -871,9 +858,6 @@ if (!hasAccess) {
           <div className="flex flex-col items-center gap-2">
   <button
     onClick={() => {
-      alert(
-        `CLICK MICRO\nisLoading=${isLoading}\nisSpeaking=${isSpeaking}\nisRecording=${isRecording}\nisSessionEnded=${isSessionEnded}`,
-      );
 
       void handleStartRecording();
     }}
@@ -888,10 +872,6 @@ if (!hasAccess) {
     🎤
   </button>
 
-  <p className="text-xs text-gray-500">
-    loading:{String(isLoading)} / speaking:{String(isSpeaking)} /
-    recording:{String(isRecording)} / ended:{String(isSessionEnded)}
-  </p>
 </div>
 
           <button
@@ -969,9 +949,7 @@ if (!hasAccess) {
          <div className="flex flex-col items-center gap-2">
   <button
     onClick={() => {
-      alert(
-        `CLICK MICRO\nisLoading=${isLoading}\nisSpeaking=${isSpeaking}\nisRecording=${isRecording}\nisSessionEnded=${isSessionEnded}`,
-      );
+     
 
       void handleStartRecording();
     }}
@@ -986,11 +964,7 @@ if (!hasAccess) {
     🎤
   </button>
 
-  <p className="text-xs text-gray-500">
-    loading:{String(isLoading)} / speaking:{String(isSpeaking)} /
-    recording:{String(isRecording)} / ended:{String(isSessionEnded)}
-  </p>
-</div>
+ </div>
 
           <button
             onClick={handleEndSession}
