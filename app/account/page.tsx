@@ -116,7 +116,7 @@ export default function AccountPage() {
 
                 <button
                   type="button"
-                  onClick={() => setShowConfirmation(false)}
+                  onClick={() => router.push("/scenarios")}
                   disabled={loading}
                   className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700"
                 >
