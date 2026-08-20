@@ -5,11 +5,13 @@ import { useEffect, useMemo } from "react";
 type DidAgentEmbedProps = {
   agentId: string;
   clientKey: string;
+  enabled: boolean;
 };
 
 export default function DidAgentEmbed({
   agentId,
   clientKey,
+  enabled,
 }: DidAgentEmbedProps) {
   const targetId = useMemo(
     () => `did-agent-target-${agentId.replace(/[^a-zA-Z0-9_-]/g, "")}`,
@@ -17,15 +19,27 @@ export default function DidAgentEmbed({
   );
 
   useEffect(() => {
+    // Ne jamais charger D-ID si le consentement IA n'est pas actif
+    if (!enabled) {
+      return;
+    }
+
     const existing = document.querySelector(
       `script[data-name="did-agent"][data-agent-id="${agentId}"]`
     );
-    if (existing) existing.remove();
+
+    if (existing) {
+      existing.remove();
+    }
 
     const target = document.getElementById(targetId);
-    if (target) target.innerHTML = "";
+
+    if (target) {
+      target.innerHTML = "";
+    }
 
     const script = document.createElement("script");
+
     script.type = "module";
     script.src = "https://agent.d-id.com/v2/index.js";
     script.setAttribute("data-mode", "full");
@@ -39,10 +53,20 @@ export default function DidAgentEmbed({
 
     return () => {
       script.remove();
+
       const target = document.getElementById(targetId);
-      if (target) target.innerHTML = "";
+
+      if (target) {
+        target.innerHTML = "";
+      }
     };
-  }, [agentId, clientKey, targetId]);
+  }, [agentId, clientKey, targetId, enabled]);
+
+  // Si le consentement IA n'est pas actif,
+  // aucun widget D-ID n'est affiché
+  if (!enabled) {
+    return null;
+  }
 
   return (
     <div className="w-full">

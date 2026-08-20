@@ -177,10 +177,8 @@ export async function POST(req: Request) {
     }
 
     const successUrl =
-      `${appUrl}/success` +
-      `?scenarioId=${encodeURIComponent(scenarioId)}` +
-      `&plan=${encodeURIComponent(plan)}` +
-      `&userId=${encodeURIComponent(userId)}`;
+  `${appUrl}/success` +
+  `?session_id={CHECKOUT_SESSION_ID}`;
 
     const cancelUrl = `${appUrl}/plan/${encodeURIComponent(scenarioId)}`;
 

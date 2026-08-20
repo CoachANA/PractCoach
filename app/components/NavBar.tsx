@@ -54,6 +54,10 @@ export default function NavBar() {
             Progression
           </Link>
 
+          <Link href="/account" className="shrink-0 rounded-full border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 sm:px-4">
+            Compte
+          </Link>
+
           <button onClick={handleLogout} className="shrink-0 rounded-full bg-red-600 px-3 py-2 text-sm text-white sm:px-4">
             Déconnexion
           </button>

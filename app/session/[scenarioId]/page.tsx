@@ -9,10 +9,14 @@ import { supabase } from "@/lib/supabase";
 import NavBar from "@/app/components/NavBar";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 
+
+
 type Message = {
   role: "coach" | "coachee";
   content: string;
 };
+
+const AI_CONSENT_VERSION = "1.0";
 
 export default function SessionPage() {
   const router = useRouter();
@@ -95,16 +99,69 @@ export default function SessionPage() {
 } | null>(null);
 
 
-    useEffect(() => {
+const [hasAiConsent, setHasAiConsent] = useState(false);
+
+
+   useEffect(() => {
   async function checkAccess() {
     const {
       data: { user },
+      error: userError,
     } = await supabase.auth.getUser();
 
-    if (!user) {
-      router.push("/login");
+    if (userError || !user) {
+      setHasAiConsent(false);
+      setHasAccess(false);
+      setAccessChecked(true);
+      router.replace("/login");
       return;
     }
+
+    // Vérifier le consentement IA AVANT d'autoriser une session
+    const { data: consents, error: consentError } = await supabase
+      .from("ai_consents")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("consent_version", AI_CONSENT_VERSION)
+      .is("revoked_at", null)
+      .limit(1);
+
+    if (consentError) {
+      console.error(
+        "Erreur vérification consentement IA dans la session :",
+        consentError
+      );
+
+      setHasAiConsent(false);
+      setHasAccess(false);
+      setAccessChecked(true);
+
+      router.replace(
+        source === "organization"
+          ? `/scenarios?source=organization`
+          : "/scenarios"
+      );
+      return;
+    }
+
+    const hasConsent = !!consents && consents.length > 0;
+
+    setHasAiConsent(hasConsent);
+
+    if (!hasConsent) {
+      setHasAccess(false);
+      setAccessChecked(true);
+
+      router.replace(
+        source === "organization"
+          ? `/scenarios?source=organization`
+          : "/scenarios"
+      );
+      return;
+    }
+
+    // À partir d'ici, le consentement IA est valide.
+    // On peut vérifier les crédits / pass.
 
     if (source === "organization") {
     const res = await fetch("/api/organization/my-credits", {
@@ -336,10 +393,21 @@ async function sendCoachMessage(messageText: string) {
   setIsLoading(true);
 
   try {
+    // Récupérer la session Supabase
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session?.access_token) {
+      throw new Error("Session utilisateur invalide ou expirée.");
+    }
+
     const response = await fetch("/api/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
       },
       body: JSON.stringify({
         scenarioId,
@@ -348,7 +416,11 @@ async function sendCoachMessage(messageText: string) {
     });
 
     if (!response.ok) {
-      throw new Error("Erreur API");
+      const errorData = await response.json().catch(() => null);
+
+      throw new Error(
+        errorData?.error || "Erreur API"
+      );
     }
 
     const data = await response.json();
@@ -363,17 +435,18 @@ async function sendCoachMessage(messageText: string) {
 
     setMessages((prev) => [...prev, aiReply]);
 
-//  const shouldUseSilverAvatar =
-//  selectedPlan === "silver" &&
-//  shouldShowAvatarForSilver(aiText) &&
-//  canUseSilverAvatar();
+    // const shouldUseSilverAvatar =
+    //   selectedPlan === "silver" &&
+    //   shouldShowAvatarForSilver(aiText) &&
+    //   canUseSilverAvatar();
 
-// if (shouldUseSilverAvatar) {
-//  await generateAvatar(aiText);
-//  setSilverAvatarTimeUsed((prev) => prev + 20);
-// } else {
-  await playCoachReply(aiText);
-//}
+    // if (shouldUseSilverAvatar) {
+    //   await generateAvatar(aiText);
+    //   setSilverAvatarTimeUsed((prev) => prev + 20);
+    // } else {
+    await playCoachReply(aiText);
+    // }
+
   } catch (error) {
     console.error(error);
 
@@ -388,8 +461,6 @@ async function sendCoachMessage(messageText: string) {
   } finally {
     setIsLoading(false);
   }
-
-  
 }
 
 async function handleSendMessage() {
@@ -606,10 +677,22 @@ const recorder = new MediaRecorder(
   recorder.mimeType?.includes("mp4") ? "recording.m4a" : "recording.webm"
 );
 
-        const response = await fetch("/api/transcribe", {
-          method: "POST",
-          body: formData,
-        });
+       const {
+          data: { session },
+          error: sessionError,
+          } = await supabase.auth.getSession();
+
+      if (sessionError || !session?.access_token) {
+        throw new Error("Session utilisateur invalide ou expirée.");
+      }
+
+      const response = await fetch("/api/transcribe", {
+            method: "POST",
+            headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            },
+      body: formData,
+      });
 
         if (!response.ok) {
           throw new Error("Erreur transcription");
@@ -657,16 +740,30 @@ async function playCoachReply(text: string) {
   try {
     setIsSpeaking(true);
 
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session?.access_token) {
+      throw new Error("Session utilisateur invalide ou expirée.");
+    }
+
     const response = await fetch("/api/speak", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
       },
       body: JSON.stringify({ text }),
     });
 
     if (!response.ok) {
-      throw new Error("Erreur génération audio");
+      const errorText = await response.text();
+
+      throw new Error(
+        errorText || "Erreur génération audio"
+      );
     }
 
     const audioBlob = await response.blob();
@@ -678,7 +775,10 @@ async function playCoachReply(text: string) {
 
     await new Promise<void>((resolve, reject) => {
       audio.onended = () => resolve();
-      audio.onerror = () => reject(new Error("Erreur lecture audio"));
+
+      audio.onerror = () =>
+        reject(new Error("Erreur lecture audio"));
+
       audio.oncanplaythrough = async () => {
         try {
           await audio.play();
@@ -692,7 +792,10 @@ async function playCoachReply(text: string) {
   } catch (error) {
     console.error("Erreur lecture audio :", error);
   } finally {
-    if (audioUrl) URL.revokeObjectURL(audioUrl);
+    if (audioUrl) {
+      URL.revokeObjectURL(audioUrl);
+    }
+
     setIsSpeaking(false);
   }
 }
@@ -701,15 +804,28 @@ async function generateAvatar(text: string) {
   try {
     setIsGeneratingAvatar(true);
 
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session?.access_token) {
+      throw new Error("Session utilisateur invalide ou expirée.");
+    }
+
+    const accessToken = session.access_token;
+
     const res = await fetch("/api/avatar", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify({ text }),
     });
 
     const data = await res.json();
+
     console.log("Réponse /api/avatar :", data);
     console.log("Status avatar API :", res.status);
     console.log("Body avatar API :", data);
@@ -731,17 +847,28 @@ async function generateAvatar(text: string) {
     while (!videoReady) {
       await new Promise((r) => setTimeout(r, 2000));
 
-      const check = await fetch(`/api/avatar?id=${talkId}`);
+      const check = await fetch(`/api/avatar?id=${talkId}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
       const result = await check.json();
 
       console.log("Polling avatar :", result);
 
+      if (!check.ok) {
+        console.error("Erreur polling avatar :", result);
+        break;
+      }
+
       if (result.status === "done" && result.videoUrl) {
         setVideoUrl(result.videoUrl);
         videoReady = true;
+        break;
       }
 
-      if (!check.ok || result.status === "error") {
+      if (result.status === "error") {
         console.error("Erreur polling avatar :", result);
         break;
       }
@@ -752,6 +879,7 @@ async function generateAvatar(text: string) {
     setIsGeneratingAvatar(false);
   }
 }
+
 
 function formatTime(seconds: number) {
   const mins = Math.floor(seconds / 60);
@@ -984,6 +1112,7 @@ if (!hasAccess) {
         <DidAgentEmbed
           agentId={DID_AGENT_ID}
           clientKey={DID_CLIENT_KEY}
+          enabled={hasAiConsent}
         />
 
         <div className="mt-6 text-center">

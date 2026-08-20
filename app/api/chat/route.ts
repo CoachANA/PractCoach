@@ -1,6 +1,9 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import { scenarios } from "@/data/scenarios";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+
+const AI_CONSENT_VERSION = "1.0";
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -8,6 +11,79 @@ const client = new OpenAI({
 
 export async function POST(request: Request) {
   try {
+    /*
+     * 1. Vérifier que l'utilisateur est authentifié
+     */
+    const authHeader = request.headers.get("authorization");
+
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "Non authentifié." },
+        { status: 401 }
+      );
+    }
+
+    const accessToken = authHeader.replace("Bearer ", "");
+
+    /*
+     * 2. Identifier l'utilisateur à partir de son token Supabase
+     */
+    const {
+      data: { user },
+      error: userError,
+    } = await supabaseAdmin.auth.getUser(accessToken);
+
+    if (userError || !user) {
+      return NextResponse.json(
+        { error: "Utilisateur invalide ou session expirée." },
+        { status: 401 }
+      );
+    }
+
+    /*
+     * 3. Vérifier que l'utilisateur a accepté
+     *    la version actuelle du consentement IA
+     */
+    const { data: consents, error: consentError } = await supabaseAdmin
+      .from("ai_consents")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("consent_version", AI_CONSENT_VERSION)
+      .is("revoked_at", null)
+      .limit(1);
+
+    if (consentError) {
+      console.error(
+        "Erreur vérification consentement IA /api/chat :",
+        consentError
+      );
+
+      return NextResponse.json(
+        { error: "Impossible de vérifier le consentement IA." },
+        { status: 500 }
+      );
+    }
+
+    /*
+     * IMPORTANT :
+     * On arrête ici si aucun consentement actif n'existe.
+     *
+     * Aucun appel à OpenAI n'est effectué.
+     */
+    if (!consents || consents.length === 0) {
+      return NextResponse.json(
+        {
+          error:
+            "Le consentement à l'utilisation des services d'intelligence artificielle est requis.",
+        },
+        { status: 403 }
+      );
+    }
+
+    /*
+     * 4. Le consentement existe.
+     *    On peut maintenant traiter la demande.
+     */
     const body = await request.json();
     const { scenarioId, messages } = body;
 
@@ -75,12 +151,25 @@ IMPORTANT
         role: "system" as const,
         content: systemPrompt,
       },
-      ...messages.map((msg: { role: "coach" | "coachee"; content: string }) => ({
-        role: msg.role === "coach" ? ("user" as const) : ("assistant" as const),
-        content: msg.content,
-      })),
+
+      ...messages.map(
+        (msg: {
+          role: "coach" | "coachee";
+          content: string;
+        }) => ({
+          role:
+            msg.role === "coach"
+              ? ("user" as const)
+              : ("assistant" as const),
+          content: msg.content,
+        })
+      ),
     ];
 
+    /*
+     * 5. Seulement après authentification + consentement,
+     *    les données sont envoyées à OpenAI
+     */
     const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages: formattedMessages,
@@ -96,6 +185,7 @@ IMPORTANT
     return NextResponse.json({ reply });
   } catch (error) {
     console.error("Erreur /api/chat :", error);
+
     return NextResponse.json(
       { error: "Erreur serveur /api/chat" },
       { status: 500 }
