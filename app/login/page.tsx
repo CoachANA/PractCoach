@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Capacitor } from "@capacitor/core";
 
-const APPLE_REVIEW_EMAIL = "apple-review@practcoach.com";
+const PASSWORD_LOGIN_EMAILS = [
+  "apple-review@practcoach.com",
+  "apple-delete-test@practcoach.com",
+];
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,7 +19,8 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const normalizedEmail = email.trim().toLowerCase();
-  const isAppleReviewAccount = normalizedEmail === APPLE_REVIEW_EMAIL;
+  const isPasswordLoginAccount =
+  PASSWORD_LOGIN_EMAILS.includes(normalizedEmail);
 
   async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -34,7 +38,7 @@ export default function LoginPage() {
        * Parcours réservé au compte de démonstration Apple :
        * connexion directe avec e-mail et mot de passe.
        */
-      if (isAppleReviewAccount) {
+      if (isPasswordLoginAccount) {
         if (!password) {
           setMessage("Merci de renseigner le mot de passe.");
           return;
@@ -89,9 +93,13 @@ export default function LoginPage() {
     setEmail(value);
     setMessage("");
 
-    if (value.trim().toLowerCase() !== APPLE_REVIEW_EMAIL) {
-      setPassword("");
-    }
+    if (
+  !PASSWORD_LOGIN_EMAILS.includes(
+    value.trim().toLowerCase()
+  )
+) {
+  setPassword("");
+}
   }
 
   return (
@@ -112,7 +120,7 @@ export default function LoginPage() {
           className="mt-6 w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-black"
         />
 
-        {isAppleReviewAccount && (
+        {isPasswordLoginAccount && (
           <input
             type="password"
             required
@@ -134,7 +142,7 @@ export default function LoginPage() {
         >
           {isLoading
             ? "Connexion en cours..."
-            : isAppleReviewAccount
+            : isPasswordLoginAccount
               ? "Se connecter"
               : "Recevoir mon lien de connexion"}
         </button>
