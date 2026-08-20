@@ -374,31 +374,6 @@ const offers = [
   </div>
 )}
 
-{revenueCatPackages.length > 0 && (
-  <div className="my-6 rounded-xl border border-green-200 bg-green-50 p-4">
-    <p className="font-semibold text-green-900">
-      Produits récupérés : {revenueCatPackages.length}
-    </p>
-
-    <div className="mt-3 space-y-2 text-sm text-green-900">
-      {revenueCatPackages.map((item) => (
-        <div key={item.identifier} className="rounded-lg bg-white p-3">
-        <p>
-          <strong>Package :</strong> {item.identifier}
-        </p>
-
-        <p>
-          <strong>Produit :</strong> {item.product.identifier}
-        </p>
-
-        <p>
-          <strong>Prix :</strong> {item.product.priceString}
-        </p>
-      </div>
-      ))}
-    </div>
-  </div>
-)}
 
         <div className="grid gap-6">
 
