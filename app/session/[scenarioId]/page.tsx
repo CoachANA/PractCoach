@@ -1003,7 +1003,7 @@ if (!hasAccess) {
           <button
             onClick={handleEndSession}
             disabled={isSessionEnded}
-            className="fixed right-6 top-20 z-50 rounded-full bg-black px-4 py-2 text-sm text-white disabled:opacity-50"
+            className="fixed right-4 top-[205px] z-40 rounded-full bg-black px-5 py-3 text-sm font-medium text-white shadow-md disabled:opacity-50 sm:right-6 sm:top-20"
           >
             Terminer la session
           </button>
@@ -1095,7 +1095,7 @@ if (!hasAccess) {
           <button
             onClick={handleEndSession}
             disabled={isSessionEnded}
-            className="fixed right-6 top-20 z-50 rounded-full bg-black px-4 py-2 text-sm text-white disabled:opacity-50"
+            className="fixed right-4 top-[205px] z-40 rounded-full bg-black px-5 py-3 text-sm font-medium text-white shadow-md disabled:opacity-50 sm:right-6 sm:top-20"
           >
             Terminer la session
           </button>
@@ -1122,7 +1122,7 @@ if (!hasAccess) {
         <button
           onClick={handleEndSession}
           disabled={isSessionEnded || isFinalizingSession}
-          className="fixed right-6 top-20 z-50 rounded-full bg-black px-4 py-2 text-sm text-white disabled:opacity-50"
+          className="fixed right-4 top-[205px] z-40 rounded-full bg-black px-5 py-3 text-sm font-medium text-white shadow-md disabled:opacity-50 sm:right-6 sm:top-20"
         >
           {isFinalizingSession ? "Finalisation..." : "Terminer la session"}
         </button>
