@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import NavBar from "@/app/components/NavBar";
 import { supabase } from "@/lib/supabase";
 
 import {
@@ -59,7 +58,6 @@ export default function ProgressPage() {
   if (isLoading) {
     return (
       <main className="min-h-screen bg-white px-6 py-12">
-        <NavBar />
         <div className="mx-auto max-w-4xl">
           <p className="text-gray-500">Chargement de la progression...</p>
         </div>
@@ -70,7 +68,6 @@ export default function ProgressPage() {
   if (sessionsWithFeedback.length === 0) {
     return (
       <main className="min-h-screen bg-white px-6 py-12">
-        <NavBar />
         <div className="mx-auto max-w-4xl">
           <h1 className="text-3xl font-bold text-gray-900">Ta progression</h1>
           <p className="mt-4 text-gray-500">Aucune donnée pour le moment.</p>
@@ -117,7 +114,6 @@ export default function ProgressPage() {
 
   return (
     <main className="min-h-screen bg-white px-6 py-12">
-      <NavBar />
 
       <div className="mx-auto max-w-4xl">
         <h1 className="text-3xl font-bold text-gray-900">Ta progression</h1>

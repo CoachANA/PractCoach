@@ -6,7 +6,6 @@ import VoiceOrb from "@/app/components/VoiceOrb";
 import CoachAvatar from "@/app/components/CoachAvatar";
 import DidAgentEmbed from "@/app/components/DidAgentEmbed";
 import { supabase } from "@/lib/supabase";
-import NavBar from "@/app/components/NavBar";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 
@@ -902,7 +901,6 @@ if (!hasAccess) {
 
   return (
     <main className="min-h-screen bg-white px-6 py-12">
-      <NavBar />
       <div className="w-full">
         <div className="mx-auto max-w-3xl">
         {!isArgent && <p className="text-sm text-gray-500">{scenario.difficulty}</p>}

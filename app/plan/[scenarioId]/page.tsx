@@ -3,7 +3,6 @@
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { scenarios } from "@/data/scenarios";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import {
@@ -356,22 +355,7 @@ useEffect(() => {
   return (
     <main className="min-h-screen bg-gray-50 px-6 py-12">
 
-         <div className="fixed left-6 top-6 z-50 flex items-center gap-3">
-             
-        <div className="flex items-center gap-2">
-          <Image
-            src="/logo.png"
-            alt="PractCoach"
-            width={42}
-            height={42}
-            className="rounded-xl"
-          />
-      
-          <span className="font-bold text-xl text-gray-900">
-            PractCoach
-          </span>
-        </div>
-            </div>
+       
       <div className="mx-auto max-w-6xl">
         
 

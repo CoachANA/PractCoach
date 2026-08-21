@@ -6,8 +6,6 @@ import Link from "next/link";
 
 import { supabase } from "@/lib/supabase";
 
-import NavBar from "@/app/components/NavBar";
-
 import { useSearchParams } from "next/navigation";
 
 import { Suspense } from "react";
@@ -71,7 +69,6 @@ function HistoryContent() {
  
   return (
     <main className="min-h-screen bg-white px-6 py-20">
-      <NavBar />
       <div className="flex items-center gap-3">
  
   <a

@@ -4,7 +4,6 @@ import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { scenarios } from "@/data/scenarios";
-import NavBar from "@/app/components/NavBar";
 
 const AI_CONSENT_VERSION = "1.0";
 
@@ -211,7 +210,6 @@ function ScenariosContent() {
   if (loading) {
     return (
       <main className="min-h-screen bg-gray-50 px-6 pb-12">
-        <NavBar />
 
         <div className="mx-auto max-w-5xl">
           Chargement des scénarios...
@@ -222,7 +220,6 @@ function ScenariosContent() {
 
   return (
     <main className="min-h-screen bg-gray-50 px-6 pb-12">
-      <NavBar />
 
       <div className="mx-auto max-w-5xl">
         <h1 className="mt-0 text-3xl font-bold text-gray-900">

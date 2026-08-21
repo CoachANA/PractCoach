@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import RevenueCatInitializer from "./components/RevenueCatInitializer";
-import "./globals.css";
 import AuthDeepLinkHandler from "./components/AuthDeepLinkHandler";
+import ConditionalNavBar from "./components/ConditionalNavBar";
+import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,6 +30,7 @@ export default function RootLayout({
       <body>
         <AuthDeepLinkHandler />
         <RevenueCatInitializer />
+        <ConditionalNavBar />
         {children}
       </body>
     </html>

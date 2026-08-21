@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -9,6 +9,8 @@ import Image from "next/image";
 export default function NavBar() {
   const router = useRouter();
   const [email, setEmail] = useState("");
+
+  const pathname = usePathname();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -46,15 +48,43 @@ export default function NavBar() {
         </div>
 
         <nav className="flex w-full gap-2 overflow-x-auto pb-1 sm:w-auto sm:justify-end sm:overflow-visible sm:pb-0">
-          <Link href="/history" className="shrink-0 rounded-full bg-black px-3 py-2 text-sm text-white sm:px-4">
+          <Link
+              href="/"
+              className="shrink-0 rounded-full border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 sm:px-4"
+              >
+            Accueil
+          </Link>
+
+          <Link
+              href="/history"
+              className={`shrink-0 rounded-full px-3 py-2 text-sm sm:px-4 ${
+              pathname.startsWith("/history")
+              ? "bg-black text-white"
+              : "border border-gray-300 bg-white text-gray-900"
+              }`}
+              >
             Historique
           </Link>
 
-          <Link href="/progress" className="shrink-0 rounded-full border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 sm:px-4">
+          <Link
+              href="/progress"
+              className={`shrink-0 rounded-full px-3 py-2 text-sm sm:px-4 ${
+              pathname.startsWith("/progress")
+              ? "bg-black text-white"
+              : "border border-gray-300 bg-white text-gray-900"
+              }`}
+              >
             Progression
           </Link>
 
-          <Link href="/account" className="shrink-0 rounded-full border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 sm:px-4">
+          <Link
+              href="/account"
+              className={`shrink-0 rounded-full px-3 py-2 text-sm sm:px-4 ${
+              pathname.startsWith("/account")
+              ? "bg-black text-white"
+              : "border border-gray-300 bg-white text-gray-900"
+              }`}
+              >
             Compte
           </Link>
 
