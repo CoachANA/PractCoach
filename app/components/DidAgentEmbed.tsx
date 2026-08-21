@@ -19,48 +19,71 @@ export default function DidAgentEmbed({
   );
 
   useEffect(() => {
-    // Ne jamais charger D-ID si le consentement IA n'est pas actif
-    if (!enabled) {
-      return;
-    }
+  if (!enabled) {
+    console.log("[D-ID] disabled");
+    return;
+  }
 
-    const existing = document.querySelector(
-      `script[data-name="did-agent"][data-agent-id="${agentId}"]`
+  console.log("[D-ID] Starting initialization");
+  console.log("[D-ID] Agent ID:", agentId);
+  console.log("[D-ID] Target ID:", targetId);
+  console.log("[D-ID] User agent:", navigator.userAgent);
+
+  const existing = document.querySelector(
+    `script[data-name="did-agent"][data-agent-id="${agentId}"]`
+  );
+
+  if (existing) {
+    console.log("[D-ID] Removing existing script");
+    existing.remove();
+  }
+
+  const target = document.getElementById(targetId);
+
+  if (target) {
+    console.log("[D-ID] Target found");
+    target.innerHTML = "";
+  } else {
+    console.error("[D-ID] Target NOT found");
+  }
+
+  const script = document.createElement("script");
+
+  script.type = "module";
+  script.src = "https://agent.d-id.com/v2/index.js";
+  script.setAttribute("data-mode", "full");
+  script.setAttribute("data-client-key", clientKey);
+  script.setAttribute("data-agent-id", agentId);
+  script.setAttribute("data-name", "did-agent");
+  script.setAttribute("data-monitor", "true");
+  script.setAttribute("data-target-id", targetId);
+
+  script.onload = () => {
+    console.log("[D-ID] Script loaded successfully");
+    console.log(
+      "[D-ID] API available:",
+      Boolean((window as any).DID_AGENTS_API)
     );
+  };
 
-    if (existing) {
-      existing.remove();
-    }
+  script.onerror = (error) => {
+    console.error("[D-ID] Script loading error:", error);
+  };
+
+  document.body.appendChild(script);
+
+  return () => {
+    console.log("[D-ID] Cleanup");
+
+    script.remove();
 
     const target = document.getElementById(targetId);
 
     if (target) {
       target.innerHTML = "";
     }
-
-    const script = document.createElement("script");
-
-    script.type = "module";
-    script.src = "https://agent.d-id.com/v2/index.js";
-    script.setAttribute("data-mode", "full");
-    script.setAttribute("data-client-key", clientKey);
-    script.setAttribute("data-agent-id", agentId);
-    script.setAttribute("data-name", "did-agent");
-    script.setAttribute("data-monitor", "true");
-    script.setAttribute("data-target-id", targetId);
-
-    document.body.appendChild(script);
-
-    return () => {
-      script.remove();
-
-      const target = document.getElementById(targetId);
-
-      if (target) {
-        target.innerHTML = "";
-      }
-    };
-  }, [agentId, clientKey, targetId, enabled]);
+  };
+}, [agentId, clientKey, targetId, enabled]);
 
   // Si le consentement IA n'est pas actif,
   // aucun widget D-ID n'est affiché
