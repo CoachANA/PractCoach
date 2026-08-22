@@ -21,16 +21,43 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- Deep link HTTPS : practcoach.com -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data
-                    android:scheme="https"
-                    android:host="practcoach.com"
-                    android:pathPrefix="/login-callback" />
+                    <data
+                        android:scheme="https"
+                        android:host="practcoach.com"
+                        android:pathPrefix="/login-callback" />
+            </intent-filter>
+
+            <!-- Deep link HTTPS : www.practcoach.com -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                    <data
+                        android:scheme="https"
+                        android:host="www.practcoach.com"
+                        android:pathPrefix="/login-callback" />
+            </intent-filter>
+
+            <!-- Deep link natif Capacitor -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                    <data
+                        android:scheme="com.practcoach.app"
+                        android:host="login-callback" />
             </intent-filter>
 
         </activity>
