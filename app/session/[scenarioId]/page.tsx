@@ -721,7 +721,15 @@ const recorder = new MediaRecorder(
       ? `${error.name}: ${error.message}`
       : String(error);
 
-    console.error("Erreur micro :", error);
+  console.error("Erreur micro :", error);
+
+  alert(
+    `Erreur micro : ${message}
+
+mediaDevices: ${!!navigator.mediaDevices}
+getUserMedia: ${!!navigator.mediaDevices?.getUserMedia}
+MediaRecorder: ${typeof MediaRecorder !== "undefined"}`
+  );
 }
 }
 

@@ -209,18 +209,45 @@ async function handleChooseOffer(offerId: string) {
         aPackage: selectedPackage,
       });
 
+      
+
       console.log("Achat réussi :", purchaseResult);
 
-      alert(
-        "Achat réussi. Vos crédits vont être ajoutés à votre compte.",
-      );
+      
+      const transactionId =
+  purchaseResult.transaction.transactionIdentifier;
 
-      /*
-       * Recharge temporairement la page.
-       * Le solde sera mis à jour après traitement du webhook RevenueCat.
-       */
-      router.refresh();
-      return;
+const creditResponse = await fetch(
+  "/api/individual/add-credits",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      userId: user.id,
+      offer: offerId,
+      transactionId,
+    }),
+  }
+);
+
+const creditResult = await creditResponse.json();
+
+if (!creditResponse.ok) {
+  throw new Error(
+    creditResult.error ||
+      "Impossible d'ajouter les crédits."
+  );
+}
+
+setBalance(creditResult.balance);
+
+alert(
+  `Achat réussi. ${creditResult.creditsAdded} crédits ont été ajoutés à votre compte.`
+);
+
+return;
     } catch (error) {
       const purchaseError = error as {
         userCancelled?: boolean;
