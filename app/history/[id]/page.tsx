@@ -57,7 +57,9 @@ export default function HistoryDetailPage() {
           </p>
           <p className="mt-2">
             <strong>Plan :</strong>{" "}
-            {session.plan.charAt(0).toUpperCase() + session.plan.slice(1)}
+            {session.plan
+                ? session.plan.charAt(0).toUpperCase() + session.plan.slice(1)
+                : "Non renseigné"}
           </p>
           <p className="mt-2 text-sm text-gray-500">
             {new Date(session.createdAt).toLocaleString()}
