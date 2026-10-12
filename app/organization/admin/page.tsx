@@ -340,8 +340,57 @@ if (loadingOrganization) {
     <>
       <button
         onClick={async () => {
-          // ton code Enregistrer ici
-        }}
+  if (!organizationId) {
+    setMessage("Organisation introuvable.");
+    return;
+  }
+
+  const newCredits = Number(editCredits);
+
+  if (Number.isNaN(newCredits) || newCredits < 0) {
+    setMessage("Le nombre de crédits est invalide.");
+    return;
+  }
+
+  setMessage("");
+
+  const adminUserId = await getAdminUserId();
+
+  if (!adminUserId) {
+    setMessage("Utilisateur non connecté.");
+    return;
+  }
+
+  const response = await fetch("/api/organization/update-member", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      organizationId,
+      userId: member.user_id,
+      role: editRole,
+      totalCredits: newCredits,
+      adminUserId,
+    }),
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    setMessage(result.error || "Erreur lors de la modification.");
+    return;
+  }
+
+  setMessage("Membre modifié avec succès.");
+
+  setEditingUserId(null);
+  setEditRole("");
+  setEditCredits("");
+
+  await loadMembers();
+  await loadStats();
+}}
         className="rounded-lg bg-black px-3 py-1 text-white"
       >
         Enregistrer
