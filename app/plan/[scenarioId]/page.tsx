@@ -378,7 +378,13 @@ useEffect(() => {
         
                 {isOrganization && creditInfo && (
                 <div className="mt-3 inline-flex rounded-full bg-black px-4 py-2 text-sm font-semibold text-white">
-                   Crédits restants : {creditInfo.remainingCredits} / {creditInfo.totalCredits}
+                    Crédits restants : {creditInfo.remainingCredits} / {creditInfo.totalCredits}
+                </div>
+                )}
+
+                {!isOrganization && individualBalance !== null && (
+                <div className="mt-3 inline-flex rounded-full bg-black px-4 py-2 text-sm font-semibold text-white">
+                    Crédits disponibles : {individualBalance}
                 </div>
                 )}
 
